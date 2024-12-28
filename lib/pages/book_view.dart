@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:isread/pages/book_detail_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:isread/models/book_model.dart';
@@ -281,7 +282,15 @@ class _BookViewState extends State<BookView> {
                     itemBuilder: (context, index) {
                       var bukuItem = filteredBuku[index];
                       return GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  BookDetailScreen(bookId: bukuItem.id),
+                            ),
+                          );
+                        },
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Column(
