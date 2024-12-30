@@ -13,7 +13,8 @@ class DataService {
       String sampul_buku,
       String status,
       String deskripsi,
-      String dosen_pembimbing) async {
+      String dosen_pembimbing,
+      String kode_buku) async {
     String uri = 'https://io.etter.cloud/v4/insert';
 
     try {
@@ -30,7 +31,8 @@ class DataService {
         'sampul_buku': sampul_buku,
         'status': status,
         'deskripsi': deskripsi,
-        'dosen_pembimbing': dosen_pembimbing
+        'dosen_pembimbing': dosen_pembimbing,
+        'kode_buku': kode_buku
       });
 
       if (response.statusCode == 200) {
@@ -52,7 +54,8 @@ class DataService {
       String tgl_pinjam,
       String tgl_kembali,
       String denda,
-      String status) async {
+      String status,
+      String judul_buku) async {
     String uri = 'https://io.etter.cloud/v4/insert';
 
     try {
@@ -66,7 +69,8 @@ class DataService {
         'tgl_pinjam': tgl_pinjam,
         'tgl_kembali': tgl_kembali,
         'denda': denda,
-        'status': status
+        'status': status,
+        'judul_buku': judul_buku
       });
 
       if (response.statusCode == 200) {
@@ -124,31 +128,6 @@ class DataService {
         'password': password,
         'no_telpon': no_telpon,
         'role': role
-      });
-
-      if (response.statusCode == 200) {
-        return response.body;
-      } else {
-        // Return an empty array
-        return '[]';
-      }
-    } catch (e) {
-      // Print error here
-      return '[]';
-    }
-  }
-
-  Future insertUser1(
-    String appid,
-  ) async {
-    String uri = 'https://io.etter.cloud/v4/insert';
-
-    try {
-      final response = await http.post(Uri.parse(uri), body: {
-        'token': '675bbd40f853312de55091c5',
-        'project': 'kelompokb_isread',
-        'collection': 'user1',
-        'appid': appid,
       });
 
       if (response.statusCode == 200) {

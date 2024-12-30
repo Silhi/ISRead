@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isread/pages/book_view.dart';
 import 'package:isread/pages/home_view.dart';
+import 'package:isread/pages/scan_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
       routes: {
         'home_page': (context) => HomeView(onCategorySelected: (category) {}),
         'book_page': (context) => BookView(selectedCategory: 'All'),
+        'scan_page': (context) => ScanView(),
       },
     );
   }

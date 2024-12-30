@@ -38,6 +38,7 @@ dependencies:
   flutter_rating_bar: ^4.0.1
   carousel_slider: ^5.0.0
   shimmer: ^3.0.0
+  mobile_scanner: ^6.0.2
 
 dev_dependencies:
   flutter_test:

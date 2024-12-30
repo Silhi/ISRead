@@ -9,6 +9,7 @@ class BukuModel {
   final String status;
   final String deskripsi;
   final String dosen_pembimbing;
+  final String kode_buku;
 
   BukuModel(
       {required this.id,
@@ -20,7 +21,8 @@ class BukuModel {
       required this.sampul_buku,
       required this.status,
       required this.deskripsi,
-      required this.dosen_pembimbing});
+      required this.dosen_pembimbing,
+      required this.kode_buku});
 
   factory BukuModel.fromJson(Map data) {
     return BukuModel(
@@ -33,6 +35,7 @@ class BukuModel {
         sampul_buku: data['sampul_buku'],
         status: data['status'],
         deskripsi: data['deskripsi'],
-        dosen_pembimbing: data['dosen_pembimbing']);
+        dosen_pembimbing: data['dosen_pembimbing'],
+        kode_buku: data['kode_buku']);
   }
 }
