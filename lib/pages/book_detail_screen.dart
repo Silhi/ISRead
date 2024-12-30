@@ -39,6 +39,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       bottomNavigationBar: Container(
         margin: const EdgeInsets.only(left: 25, right: 25, bottom: 25),
         height: 49,

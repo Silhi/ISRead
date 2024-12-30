@@ -9,6 +9,7 @@ import 'package:isread/admin_dashboard/book_dashboard.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:isread/pages/scan_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
         'welcome_screen': (context) => WelcomeScreen(),
         'book_dashboard': (context) => BookDashboard(),
         'login_page': (context) => LoginPage(),
+        'scan_page': (context) => ScanView(),
       },
     );
   }
