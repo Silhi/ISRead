@@ -6,6 +6,7 @@ import 'package:isread/color/color_extenstion.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'package:isread/pages/book_detail_screen.dart';
 import 'package:isread/pages/book_view.dart';
 import 'package:isread/models/book_model.dart';
 import 'package:isread/utils/config.dart';
@@ -83,7 +84,7 @@ class _HomeViewState extends State<HomeView> {
                       origin: Offset(0, media.width * 0.8),
                       child: Container(
                         width: media.width,
-                        height: media.width * 1.20,
+                        height: media.width * 1.50,
                         decoration: BoxDecoration(
                             color: TColor.primaryLight,
                             borderRadius:
@@ -100,6 +101,9 @@ class _HomeViewState extends State<HomeView> {
                             horizontal: 16.0, vertical: 8.0),
                         child: Row(
                           children: [
+                            SizedBox(
+                              height: media.width * 0.34,
+                            ),
                             Expanded(
                               child: TextField(
                                 controller: txtSearch,
@@ -146,7 +150,6 @@ class _HomeViewState extends State<HomeView> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16.0),
                       // Welcome message container
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -251,81 +254,99 @@ class _HomeViewState extends State<HomeView> {
                                 itemBuilder: (BuildContext context,
                                     int itemIndex, int pageViewIndex) {
                                   var bukuItem = buku[itemIndex];
-                                  return Container(
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 8.0),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 5,
-                                          offset: const Offset(0, 3),
+                                  return GestureDetector(
+                                    onTap: () {
+                                      // Navigate to the BookDetailScreen when tapped
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              BookDetailScreen(
+                                                  bookId: bukuItem.id),
                                         ),
-                                      ],
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // Gambar buku
-                                          Expanded(
-                                            child: Image.network(
-                                              bukuItem.sampul_buku,
-                                              fit: BoxFit.cover,
-                                              width: double.infinity,
-                                              errorBuilder:
-                                                  (BuildContext context,
-                                                      Object error,
-                                                      StackTrace? stackTrace) {
-                                                return Container(
-                                                  color: Colors.grey[200],
-                                                  child: const Center(
-                                                    child: Icon(
-                                                      Icons
-                                                          .my_library_books_rounded,
-                                                      size: 50,
-                                                      color: Colors.grey,
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                          // Detail buku
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  bukuItem.judul_buku,
-                                                  style: const TextStyle(
-                                                    fontSize: 16.0,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                const SizedBox(height: 4.0),
-                                                Text(
-                                                  bukuItem.pengarang,
-                                                  style: const TextStyle(
-                                                    fontSize: 14.0,
-                                                    color: Colors.grey,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ],
-                                            ),
+                                      );
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 8.0),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.1),
+                                            blurRadius: 5,
+                                            offset: const Offset(0, 3),
                                           ),
                                         ],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // Gambar buku
+                                            Expanded(
+                                              child: Image.asset(
+                                                "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                                errorBuilder: (BuildContext
+                                                        context,
+                                                    Object error,
+                                                    StackTrace? stackTrace) {
+                                                  return Container(
+                                                    color: Colors.grey[200],
+                                                    child: const Center(
+                                                      child: Icon(
+                                                        Icons
+                                                            .my_library_books_rounded,
+                                                        size: 50,
+                                                        color: Colors.grey,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                            // Detail buku
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    bukuItem.judul_buku,
+                                                    style: const TextStyle(
+                                                      fontSize: 16.0,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height: 4.0),
+                                                  Text(
+                                                    bukuItem.pengarang,
+                                                    style: const TextStyle(
+                                                      fontSize: 14.0,
+                                                      color: Colors.grey,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   );
@@ -341,6 +362,7 @@ class _HomeViewState extends State<HomeView> {
                                 ),
                               ),
                       ),
+
                       SizedBox(height: 30),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -471,7 +493,15 @@ class _HomeViewState extends State<HomeView> {
                                 .toList();
                             var bukuItem = tugasAkhirBuku[index];
                             return GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        BookDetailScreen(bookId: bukuItem.id),
+                                  ),
+                                );
+                              },
                               child: Container(
                                 width: media.width * 0.45,
                                 margin:
@@ -483,8 +513,8 @@ class _HomeViewState extends State<HomeView> {
                                       child: ClipRRect(
                                         borderRadius:
                                             BorderRadius.circular(8.0),
-                                        child: Image.network(
-                                          bukuItem.sampul_buku,
+                                        child: Image.asset(
+                                          "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           errorBuilder: (BuildContext context,
@@ -564,7 +594,15 @@ class _HomeViewState extends State<HomeView> {
                                 .toList();
                             var bukuItem = kerjaPraktikBuku[index];
                             return GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        BookDetailScreen(bookId: bukuItem.id),
+                                  ),
+                                );
+                              },
                               child: Container(
                                 width: media.width * 0.45,
                                 margin:
@@ -576,8 +614,8 @@ class _HomeViewState extends State<HomeView> {
                                       child: ClipRRect(
                                         borderRadius:
                                             BorderRadius.circular(8.0),
-                                        child: Image.network(
-                                          bukuItem.sampul_buku,
+                                        child: Image.asset(
+                                          "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           errorBuilder: (BuildContext context,

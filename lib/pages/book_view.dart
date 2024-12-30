@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'package:isread/pages/book_detail_screen.dart';
 import 'package:isread/models/book_model.dart';
 import 'package:isread/utils/config.dart';
 import 'package:isread/utils/restapi.dart';
@@ -98,9 +99,12 @@ class _BookViewState extends State<BookView> {
             Expanded(
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 8.0),
                 child: Row(
                   children: [
+                    SizedBox(
+                      height: 30,
+                    ),
                     Expanded(
                       child: TextField(
                         controller: txtSearch,
@@ -138,64 +142,68 @@ class _BookViewState extends State<BookView> {
                       child: IconButton(
                         icon: const Icon(Icons.calendar_month_outlined),
                         onPressed: () {
-                          showModalBottomSheet(
-                            backgroundColor: Colors.white,
+                          showDialog(
                             context: context,
-                            builder: (context) {
-                              return Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text(
-                                      "Filter Berdasarkan Tahun",
-                                      style: TextStyle(
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 20.0),
-                                    TextField(
-                                      controller: txtStartYear,
-                                      decoration: InputDecoration(
-                                        labelText: "Tahun Mulai",
-                                        labelStyle:
-                                            TextStyle(color: Colors.black),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
-                                          borderSide:
-                                              BorderSide(color: Colors.black),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                    ),
-                                    const SizedBox(height: 10.0),
-                                    TextField(
-                                      controller: txtEndYear,
-                                      decoration: InputDecoration(
-                                        labelText: "Tahun Selesai",
-                                        labelStyle: TextStyle(
-                                            color: Colors
-                                                .black), // warna label putih agar terlihat di atas latar hitam
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
-                                          borderSide:
-                                              BorderSide(color: Colors.black),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                    ),
-                                    const SizedBox(height: 20.0),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        filterByYear();
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text("Terapkan Filter"),
-                                    ),
-                                  ],
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                backgroundColor: Colors.white,
+                                title: const Text(
+                                  "Filter Berdasarkan Tahun",
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
+                                content: SingleChildScrollView(
+                                  // Makes content scrollable if needed
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextField(
+                                        controller: txtStartYear,
+                                        decoration: InputDecoration(
+                                          labelText: "Tahun Mulai",
+                                          labelStyle:
+                                              TextStyle(color: Colors.black),
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8.0),
+                                            borderSide:
+                                                BorderSide(color: Colors.black),
+                                          ),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                      const SizedBox(height: 10.0),
+                                      TextField(
+                                        controller: txtEndYear,
+                                        decoration: InputDecoration(
+                                          labelText: "Tahun Selesai",
+                                          labelStyle:
+                                              TextStyle(color: Colors.black),
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8.0),
+                                            borderSide:
+                                                BorderSide(color: Colors.black),
+                                          ),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                      const SizedBox(height: 20.0),
+                                    ],
+                                  ),
+                                ),
+                                actions: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      filterByYear();
+                                      Navigator.pop(
+                                          context); // Close the dialog
+                                    },
+                                    child: const Text("Terapkan Filter"),
+                                  ),
+                                ],
                               );
                             },
                           );
@@ -281,37 +289,41 @@ class _BookViewState extends State<BookView> {
                     itemBuilder: (context, index) {
                       var bukuItem = filteredBuku[index];
                       return GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  BookDetailScreen(bookId: bukuItem.id),
+                            ),
+                          );
+                        },
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: ClipRect(
-                                  child: Align(
-                                    alignment: Alignment.topCenter,
-                                    heightFactor: 1.0,
-                                    child: Image.network(
-                                      bukuItem.sampul_buku,
-                                      fit: BoxFit.fill,
-                                      height: 225.0,
-                                      width: 165,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Container(
-                                          color: Colors.grey[200],
-                                          child: const Center(
-                                            child: Icon(
-                                              Icons.my_library_books_rounded,
-                                              size: 50,
-                                              color: Colors.grey,
-                                            ),
+                              ClipRect(
+                                child: Align(
+                                  alignment: Alignment.topCenter,
+                                  heightFactor: 1.0,
+                                  child: Image.asset(
+                                    "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                    fit: BoxFit.fill,
+                                    height: 136,
+                                    width: 90,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[200],
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.my_library_books_rounded,
+                                            size: 50,
+                                            color: Colors.grey,
                                           ),
-                                        );
-                                      },
-                                    ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
