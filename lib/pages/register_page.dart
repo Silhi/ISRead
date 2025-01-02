@@ -84,6 +84,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               .blueAccent, // Warna teks saat label mengambang
                         ),
                       ),
+                      cursorColor: Colors.blueAccent,
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
@@ -95,8 +96,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         hintText: "Enter your NRP",
                         border: OutlineInputBorder(),
                         enabledBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.grey, width: 1.0),
+                          borderSide: BorderSide(
+                              color: Color.fromARGB(172, 177, 176, 176),
+                              width: 1.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide:
@@ -106,6 +108,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           color: Colors.blueAccent,
                         ),
                       ),
+                      cursorColor: Colors.blueAccent,
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
@@ -128,6 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           color: Colors.blueAccent,
                         ),
                       ),
+                      cursorColor: Colors.blueAccent,
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
@@ -151,6 +155,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           color: Colors.blueAccent,
                         ),
                       ),
+                      cursorColor: Colors.blueAccent,
                     ),
                     const SizedBox(height: 16.0),
                     TextFormField(
@@ -174,6 +179,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           color: Colors.blueAccent,
                         ),
                       ),
+                      cursorColor: Colors.blueAccent,
                     ),
                     const SizedBox(height: 24.0),
                     ElevatedButton(
@@ -210,7 +216,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 16.0),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, 'welcome_page');
+                        Navigator.pushNamed(context, 'login_page');
                       },
                       child: const Text(
                         'Already have an account? Log In',
@@ -221,36 +227,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(
-                  height: 24), // Kurangi jarak vertikal menjadi lebih kecil
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(
-                    Icons.arrow_back, // Ikon panah kembali
-                    color: Colors.blueAccent, // Sesuaikan dengan tema
-                  ),
-                  label: const Text(
-                    'Back to Welcome Page',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color:
-                          Colors.blueAccent, // Warna teks konsisten dengan ikon
-                      fontWeight:
-                          FontWeight.w500, // Tambahkan ketebalan untuk elegansi
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0), // Jarak halus
-                    alignment:
-                        Alignment.centerLeft, // Penyesuaian tata letak kiri
-                  ),
                 ),
               ),
             ],

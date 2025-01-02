@@ -300,6 +300,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
+                        cursorColor: Colors.blueAccent,
                       ),
                       const SizedBox(height: 18.0),
                       TextFormField(
@@ -351,6 +352,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
+                        cursorColor: Colors.blueAccent,
                       ),
                       Align(
                         alignment: Alignment.centerRight,
