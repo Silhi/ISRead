@@ -10,6 +10,7 @@ class BookDetailScreen extends StatefulWidget {
   final String bookId;
 
   const BookDetailScreen({Key? key, required this.bookId}) : super(key: key);
+
   @override
   State<BookDetailScreen> createState() => _BookDetailScreenState();
 }
@@ -39,28 +40,37 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.only(left: 25, right: 25, bottom: 25),
-        height: 49,
-        child: TextButton(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(Colors.teal),
-            shape: MaterialStateProperty.all(
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      bottomNavigationBar: buku?.status == "Tidak Tersedia"
+          ? Container(
+              margin: const EdgeInsets.all(25),
+              child: const Text(
+                "Buku sedang dipinjam",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.red),
+              ),
+            )
+          : Container(
+              margin: const EdgeInsets.only(left: 25, right: 25, bottom: 25),
+              height: 49,
+              child: TextButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.teal),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                onPressed: () async {},
+                child: const Text(
+                  'Pinjam Buku',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
-          ),
-          onPressed: () {},
-          child: const Text(
-            'Generate Barcode',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
       body: SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[
@@ -107,7 +117,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                           image: buku?.sampul_buku != '-' &&
                                   buku?.sampul_buku != null
                               ? DecorationImage(
-                                  image: AssetImage(
+                                  image: NetworkImage(buku?.sampul_buku ??
                                       "assets/sampul/${buku?.kategori_buku}.jpeg"),
                                   fit: BoxFit.cover,
                                 )
@@ -131,7 +141,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               delegate: SliverChildListDelegate(
                 [
                   Padding(
-                    padding: const EdgeInsets.only(top: 24, left: 25),
+                    padding:
+                        const EdgeInsets.only(top: 24, left: 25, right: 25),
                     child: Text(
                       buku?.judul_buku ?? 'No Title',
                       style: const TextStyle(
@@ -155,7 +166,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     padding: const EdgeInsets.only(top: 7, left: 25),
                     child: Text(
                       buku?.status ?? 'Undefined',
-                      style: const TextStyle(fontSize: 14, color: Colors.green),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: buku?.status == "Tidak Tersedia"
+                            ? Colors.red
+                            : Colors.green,
+                      ),
                     ),
                   ),
                   Padding(
@@ -190,10 +206,17 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                 physics: NeverScrollableScrollPhysics(),
                                 gridDelegate:
                                     SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  mainAxisSpacing: 4,
-                                  crossAxisSpacing: 4,
-                                  childAspectRatio: 2.7,
+                                  crossAxisCount: MediaQuery.of(context)
+                                              .size
+                                              .width >
+                                          600
+                                      ? 3
+                                      : MediaQuery.of(context).size.width > 400
+                                          ? 2
+                                          : 1,
+                                  mainAxisSpacing: 8,
+                                  crossAxisSpacing: 8,
+                                  childAspectRatio: 3,
                                 ),
                                 itemCount: isExpanded
                                     ? (buku?.dosen_pembimbing.contains(";") ??
