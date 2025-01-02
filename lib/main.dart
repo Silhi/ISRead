@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
           surface: Color(0xff112D4E),
         ),
       ),
-      initialRoute: 'welcome_screen',
+      initialRoute: 'home_page',
       routes: {
         'home_page': (context) => HomeView(onCategorySelected: (category) {}),
         'book_page': (context) => BookView(selectedCategory: 'All'),
