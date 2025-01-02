@@ -40,6 +40,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       bottomNavigationBar: buku?.status == "Tidak Tersedia"
           ? Container(
               margin: const EdgeInsets.all(25),
@@ -54,7 +55,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               height: 49,
               child: TextButton(
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.teal),
+                  backgroundColor: MaterialStateProperty.all(
+                      Theme.of(context).colorScheme.surface),
                   shape: MaterialStateProperty.all(
                     RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
@@ -76,7 +78,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           slivers: <Widget>[
             SliverAppBar(
               automaticallyImplyLeading: false,
-              backgroundColor: Colors.teal,
+              backgroundColor: Color(0xFFF3F3E0),
               expandedHeight: MediaQuery.of(context).size.height * 0.5,
               flexibleSpace: FlexibleSpaceBar(
                 background: Stack(
@@ -95,9 +97,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                             borderRadius: BorderRadius.circular(5),
                             color: Colors.white,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.arrow_back,
-                            color: Colors.teal,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                         ),
                       ),
