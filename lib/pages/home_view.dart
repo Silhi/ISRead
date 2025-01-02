@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:isread/color/color_extenstion.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'package:isread/pages/welcome_screen.dart';
 import 'package:isread/pages/book_detail_screen.dart';
 import 'package:isread/pages/book_view.dart';
 import 'package:isread/models/book_model.dart';
+import 'package:isread/models/user_model.dart';
 import 'package:isread/utils/config.dart';
 import 'package:isread/utils/restapi.dart';
 
@@ -30,10 +33,13 @@ class _HomeViewState extends State<HomeView> {
   int _selectedIndex = 0;
   int selectTag = 0;
 
+  UserModel? currentUser;
+
   @override
   void initState() {
     super.initState();
     selectAllBook();
+    checkLoginStatus();
   }
 
   Future<void> selectAllBook() async {
@@ -63,6 +69,21 @@ class _HomeViewState extends State<HomeView> {
     setState(() {
       buku = search_data;
     });
+  }
+
+  Future<void> checkLoginStatus() async {
+    String? userData = await getUserDataFromStorage();
+    if (userData != null) {
+      Map<String, dynamic> userMap = jsonDecode(userData);
+      setState(() {
+        currentUser = UserModel.fromJson(userMap);
+      });
+    }
+  }
+
+  Future<String?> getUserDataFromStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_data');
   }
 
   @override
@@ -167,31 +188,41 @@ class _HomeViewState extends State<HomeView> {
                         ),
                         child: Row(
                           children: [
-                            CircleAvatar(
-                              radius: 30,
-                              backgroundColor: Colors.blue[100],
-                              child: ClipOval(
-                                child: Image.asset(
-                                  "/avatar/dummy.jpg",
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (BuildContext context,
-                                      Object error, StackTrace? stackTrace) {
-                                    return const Icon(
+                            currentUser != null
+                                ? CircleAvatar(
+                                    radius: 30,
+                                    backgroundColor: Colors.blue[100],
+                                    child: ClipOval(
+                                      child: Image.asset(
+                                        "/avatar/dummy.jpg",
+                                        width: 60,
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (BuildContext context,
+                                            Object error,
+                                            StackTrace? stackTrace) {
+                                          return const Icon(
+                                            Icons.person,
+                                            size: 30,
+                                            color: Colors.blueGrey,
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  )
+                                : const CircleAvatar(
+                                    radius: 30,
+                                    child: Icon(
                                       Icons.person,
                                       size: 30,
                                       color: Colors.blueGrey,
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
+                                    ),
+                                  ),
                             const SizedBox(width: 16.0),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
+                              children: [
+                                const Text(
                                   "Hai Selamat Datang,",
                                   style: TextStyle(
                                     fontSize: 16.0,
@@ -199,13 +230,33 @@ class _HomeViewState extends State<HomeView> {
                                     color: Colors.black,
                                   ),
                                 ),
-                                Text(
-                                  "162022001",
-                                  style: TextStyle(
-                                    fontSize: 14.0,
-                                    color: Colors.black,
-                                  ),
-                                ),
+                                currentUser != null
+                                    ? Text(
+                                        currentUser!.nrp,
+                                        style: const TextStyle(
+                                          fontSize: 14.0,
+                                          color: Colors.black,
+                                        ),
+                                      )
+                                    : GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  WelcomeScreen(),
+                                            ),
+                                          );
+                                        },
+                                        child: const Text(
+                                          "Login",
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
                               ],
                             ),
                           ],

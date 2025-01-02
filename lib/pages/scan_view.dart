@@ -18,9 +18,7 @@ class _ScanViewState extends State<ScanView> {
   final MobileScannerController _controller = MobileScannerController();
   bool _isProcessing = false;
   DataService ds = DataService();
-  List data = [];
   List<BukuModel> buku = [];
-  List<BukuModel> filteredBuku = [];
 
   @override
   void initState() {
@@ -30,11 +28,10 @@ class _ScanViewState extends State<ScanView> {
 
   Future<void> _loadBooks() async {
     try {
-      data = jsonDecode(await ds.selectAll(token, project, 'buku', appid));
+      final String jsonResponse =
+          await ds.selectAll(token, project, 'buku', appid);
+      final List data = jsonDecode(jsonResponse);
       buku = data.map((e) => BukuModel.fromJson(e)).toList();
-      setState(() {
-        buku = buku;
-      });
     } catch (e) {
       print("Error loading books: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,10 +48,12 @@ class _ScanViewState extends State<ScanView> {
     });
 
     try {
+      // Cari buku berdasarkan barcode (ID)
       final BukuModel? scannedBook =
-          buku.firstWhere((book) => book.kode_buku == barcode);
+          buku.firstWhere((book) => book.id == barcode);
 
       if (scannedBook != null) {
+        // Jika ditemukan, arahkan ke halaman detail buku
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -62,8 +61,20 @@ class _ScanViewState extends State<ScanView> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Book not found in the database.')),
+        // Jika tidak ditemukan, tampilkan pop-up
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Buku Tidak Terdaftar'),
+            content: const Text(
+                'Buku dengan barcode ini tidak ditemukan di database.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
       }
     } catch (e) {
@@ -81,6 +92,7 @@ class _ScanViewState extends State<ScanView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Scan Barcode'),
         leading: IconButton(
@@ -92,7 +104,6 @@ class _ScanViewState extends State<ScanView> {
       ),
       body: Stack(
         children: [
-          // Barcode scanner
           MobileScanner(
             controller: _controller,
             onDetect: (BarcodeCapture capture) {
@@ -100,13 +111,11 @@ class _ScanViewState extends State<ScanView> {
               for (final barcode in barcodes) {
                 if (barcode.rawValue != null) {
                   _handleBarcode(barcode.rawValue!);
-                  break; // Stop after handling the first barcode
+                  break;
                 }
               }
             },
           ),
-
-          // Flashlight toggle button
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
