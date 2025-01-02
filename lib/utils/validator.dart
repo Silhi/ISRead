@@ -44,15 +44,12 @@ class Validator {
   }
 
   static String? validatePhoneNumber(String value) {
-    // Menyaring nilai kosong
     if (value.isEmpty) {
       return 'Nomor telepon tidak boleh kosong';
     }
-    // Memeriksa panjang nomor telepon (misalnya 10-12 digit)
     if (value.length < 10 || value.length > 12) {
       return 'Nomor telepon harus antara 10 hingga 12 digit';
     }
-    // Memeriksa apakah nomor telepon hanya berisi angka
     if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
       return 'Nomor telepon hanya boleh berisi angka';
     }

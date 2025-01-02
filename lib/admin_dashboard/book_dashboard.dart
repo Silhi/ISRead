@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+
 import 'package:isread/models/book_model.dart';
 import 'package:isread/models/return_model.dart';
 import 'package:isread/models/loan_model.dart';
 import 'package:isread/models/user_model.dart';
+
 import 'package:isread/utils/restapi.dart';
 import 'package:isread/utils/config.dart';
 import 'package:intl/intl.dart';
+
+import 'package:isread/admin_dashboard/book_details.dart';
 
 class BookDashboard extends StatefulWidget {
   const BookDashboard({Key? key}) : super(key: key);
@@ -109,10 +113,100 @@ class BookDashboardState extends State<BookDashboard> {
       appBar: AppBar(
         title: const Text(
           'Manage Books',
-          style:
-              TextStyle(color: Colors.white), // Ubah warna teks menjadi putih
+          style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.blue,
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
+      drawer: Drawer(
+        child: Container(
+          color: Colors.white, // Ubah warna latar belakang drawer menjadi putih
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              Container(
+                color: Colors.blue, // Warna latar belakang header drawer
+                padding: EdgeInsets.only(left: 16.0, top: 20.0, bottom: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.white,
+                      backgroundImage: AssetImage('assets/avatar/dummy.jpg'),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Admin Name',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'admin@example.com',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.dashboard, color: Colors.blue),
+                title: Text('Dashboard'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                hoverColor:
+                    Colors.grey[200], // Efek abu-abu saat kursor diarahkan
+              ),
+              ListTile(
+                leading: Icon(Icons.book, color: Colors.blue),
+                title: Text('Manage Books'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                hoverColor: Colors.grey[200],
+              ),
+              ListTile(
+                leading: Icon(Icons.person, color: Colors.blue),
+                title: Text('Manage Users'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                hoverColor: Colors.grey[200],
+              ),
+              ListTile(
+                leading: Icon(Icons.library_books, color: Colors.blue),
+                title: Text('Manage Borrowing'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                hoverColor: Colors.grey[200],
+              ),
+              ListTile(
+                leading: Icon(Icons.library_add_check, color: Colors.blue),
+                title: Text('Manage Returns'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                hoverColor: Colors.grey[200],
+              ),
+              ListTile(
+                leading: Icon(Icons.logout, color: Colors.blue),
+                title: Text('Logout'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, 'login_page');
+                },
+                hoverColor: Colors.grey[200],
+              ),
+            ],
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -121,9 +215,17 @@ class BookDashboardState extends State<BookDashboard> {
             statisticsGrid(),
             triggerSection(),
             filterAndSearchSection(),
-            dataTable(),
+            dataTable(context),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, 'add_book_page');
+        },
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add, color: Colors.white),
+        tooltip: 'Add Book',
       ),
     );
   }
@@ -141,6 +243,7 @@ class BookDashboardState extends State<BookDashboard> {
           const Text(
             "Manage your book collection",
             style: TextStyle(
+              color: Color.fromARGB(255, 107, 105, 105),
               fontWeight: FontWeight.bold,
               fontSize: 20.0,
             ),
@@ -155,11 +258,17 @@ class BookDashboardState extends State<BookDashboard> {
             ),
           ),
           TextButton.icon(
-            onPressed: () {},
+            icon: Icon(
+              Icons.calendar_today, // Ikon kalender untuk tanggal
+              color: const Color.fromARGB(255, 11, 15, 255), // Warna ikon
+            ),
+            onPressed: () {
+              // Fungsi ketika tombol ditekan
+            },
             label: Text(
               "Date: $formattedToday",
               style: TextStyle(
-                color: const Color.fromARGB(255, 11, 15, 255),
+                color: const Color.fromARGB(255, 11, 15, 255), // Warna teks
               ),
             ),
           ),
@@ -182,6 +291,7 @@ class BookDashboardState extends State<BookDashboard> {
                 value: filterCategory.isEmpty ? null : filterCategory,
                 hint: Text("Filter by"),
                 icon: Icon(Icons.filter_list_alt),
+                dropdownColor: Colors.white,
                 items: [
                   const DropdownMenuItem(value: '', child: Text('All')),
                   ...buku
@@ -307,45 +417,162 @@ class BookDashboardState extends State<BookDashboard> {
     );
   }
 
-  Widget dataTable() {
+  Widget dataTable(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Card(
         elevation: 2,
         color: Colors.white,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columns: const [
-              DataColumn(label: Text('Title')),
-              DataColumn(label: Text('Category')),
-              DataColumn(label: Text('Author')),
-              DataColumn(label: Text('Action')),
-            ],
-            rows: filteredBuku.map((book) {
-              return DataRow(cells: [
-                DataCell(Text(book.judul_buku)),
-                DataCell(Text(book.kategori_buku)),
-                DataCell(Text(book.pengarang)),
-                DataCell(Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () {
-                        // Edit action
-                      },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                  child: DataTableTheme(
+                    data: DataTableThemeData(
+                      headingRowColor: MaterialStateProperty.all(
+                          Colors.grey[200]), // Warna header
+                      headingTextStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ), // Gaya teks header
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        // Delete action
-                      },
+                    child: DataTable(
+                      columnSpacing: 16.0, // Spasi antar kolom
+                      horizontalMargin: 12.0, // Margin horizontal
+                      dataRowHeight: 70.0, // Tinggi baris data
+                      headingRowHeight: 50.0, // Tinggi baris heading
+                      columns: const [
+                        DataColumn(
+                          label: Text('Title',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        DataColumn(
+                          label: Text('Category',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        DataColumn(
+                          label: Text('Author',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        DataColumn(
+                          label: Text('Action',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                      rows: filteredBuku.map((book) {
+                        return DataRow(
+                          cells: [
+                            DataCell(
+                              GestureDetector(
+                                onTap: () {
+                                  // Navigasi ke halaman detail
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          BookDetailPage(book: book),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width:
+                                      constraints.maxWidth * 0.60, // Lebar 60%
+                                  child: Text(
+                                    book.judul_buku,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                width: constraints.maxWidth * 0.20, // Lebar 20%
+                                child: Text(
+                                  book.kategori_buku,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                width: constraints.maxWidth * 0.20, // Lebar 20%
+                                child: Text(
+                                  book.pengarang,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.blue),
+                                    onPressed: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        'edit_book_page',
+                                        arguments: [book.id],
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
+                                    onPressed: () async {
+                                      bool response = await ds.removeId(
+                                        token,
+                                        project,
+                                        'buku',
+                                        appid,
+                                        book.id, // Pastikan ID buku yang benar dikirim
+                                      );
+
+                                      if (response) {
+                                        setState(() {
+                                          // Hapus buku dari daftar yang ditampilkan
+                                          filteredBuku.removeWhere(
+                                              (item) => item.id == book.id);
+                                          buku.removeWhere(
+                                              (item) => item.id == book.id);
+                                          totalBooks = buku.length;
+                                        });
+
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                          content: Text(
+                                              'Book successfully removed!'),
+                                          backgroundColor: Colors.green,
+                                        ));
+                                      } else {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                          content: Text(
+                                              'Failed to remove book from database.'),
+                                          backgroundColor: Colors.red,
+                                        ));
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
                     ),
-                  ],
-                )),
-              ]);
-            }).toList(),
-          ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
