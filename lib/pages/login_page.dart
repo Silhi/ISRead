@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
-import 'package:isread/pages/home_view.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:isread/utils/config.dart' as configUser;
+
+import 'package:isread/models/user_model.dart';
+import 'package:isread/pages/home_view.dart';
 import 'package:isread/admin_dashboard/book_dashboard.dart';
 import 'package:isread/utils/validator.dart';
 import 'package:isread/widgets/custom_scaffold.dart';
@@ -76,28 +78,128 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void handleLogin(User user) async {
-    final role = await fetchUserRole(
-        user.email!); // Ambil role menggunakan email Firebase
+  Future<String?> fetchUserNrp(String email) async {
+    final url =
+        'https://io.etter.cloud/v4/select_all/token/${configUser.token}/project/${configUser.project}/collection/user/appid/${configUser.appid}?email=$email';
 
-    if (role != null) {
-      if (role == 'admin') {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const BookDashboard(),
-          ),
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      debugPrint('Status Code: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = jsonDecode(response.body);
+
+        final user = responseData.firstWhere(
+          (user) => user['email'] == email,
+          orElse: () => null,
         );
-      } else if (role == 'mahasiswa') {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => HomeView(onCategorySelected: (category) {}),
-          ),
-        );
+
+        if (user != null) {
+          return user['nrp'];
+        } else {
+          debugPrint('User with email $email not found.');
+          return null;
+        }
       } else {
-        _showSnackBar('Role tidak dikenali: $role');
+        debugPrint('Failed to fetch role: ${response.statusCode}');
+        return null;
       }
-    } else {
-      _showSnackBar('Gagal mengambil data role pengguna');
+    } catch (e) {
+      debugPrint('Error: $e');
+      return null;
+    }
+  }
+
+  Future<UserModel?> fetchUserData(String email) async {
+    final url =
+        'https://io.etter.cloud/v4/select_all/token/${configUser.token}/project/${configUser.project}/collection/user/appid/${configUser.appid}?email=$email';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      debugPrint('Status Code: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = jsonDecode(response.body);
+
+        // Cari user berdasarkan email
+        final userData = responseData.firstWhere(
+          (user) => user['email'] == email,
+          orElse: () => null,
+        );
+
+        if (userData != null) {
+          return UserModel.fromJson(userData); // Buat UserModel dari JSON
+        } else {
+          debugPrint('User dengan email $email tidak ditemukan.');
+          return null;
+        }
+      } else {
+        debugPrint('Gagal mengambil data user: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
+      return null;
+    }
+  }
+
+  Future<void> saveUserSession(UserModel user) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Map<String, String> userData = {
+      'id': user.id,
+      'username': user.username,
+      'nrp': user.nrp,
+      'email': user.email,
+      'no_telpon': user.no_telpon,
+      'role': user.role,
+    };
+    await prefs.setString('user_data', jsonEncode(userData));
+  }
+
+  void handleLogin(UserCredential userCredential) async {
+    try {
+      // Ambil data user berdasarkan email
+      final user = await fetchUserData(userCredential.user!.email!);
+
+      if (user != null) {
+        // Simpan data pengguna di SharedPreferences
+        await saveUserSession(user);
+
+        // Navigasi berdasarkan role pengguna
+        if (user.role == 'admin') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const BookDashboard(),
+            ),
+          );
+        } else if (user.role == 'mahasiswa') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => HomeView(onCategorySelected: (category) {}),
+            ),
+          );
+        } else {
+          _showSnackBar('Role tidak dikenali: ${user.role}');
+        }
+      } else {
+        _showSnackBar('Gagal mengambil data pengguna');
+      }
+    } catch (e) {
+      _showSnackBar('Login gagal: ${e.toString()}');
     }
   }
 
@@ -295,12 +397,11 @@ class _LoginPageState extends State<LoginPage> {
                                   email: _emailTextController.text,
                                   password: _passwordTextController.text,
                                 );
-
                                 setState(() {
                                   _isProcessing = false;
                                 });
 
-                                handleLogin(userCredential.user!);
+                                handleLogin(userCredential);
                               } catch (e) {
                                 setState(() {
                                   _isProcessing = false;
@@ -318,61 +419,6 @@ class _LoginPageState extends State<LoginPage> {
                                   style: TextStyle(fontSize: 18.0),
                                 ),
                         ),
-                      ),
-                      const SizedBox(height: 20.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Expanded(
-                            child: Divider(
-                              color: Colors.grey,
-                              thickness: 1.0,
-                            ),
-                          ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text(
-                              'or login with',
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                          ),
-                          const Expanded(
-                            child: Divider(
-                              color: Colors.grey,
-                              thickness: 1.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon:
-                                const Icon(Icons.facebook, color: Colors.blue),
-                            onPressed: () {
-                              // Tambahkan logika untuk login dengan Facebook
-                              print('Login with Facebook');
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.alternate_email,
-                                color: Colors.blueAccent),
-                            onPressed: () {
-                              // Tambahkan logika untuk login dengan Google
-                              print('Login with Google');
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.apple, color: Colors.black),
-                            onPressed: () {
-                              // Tambahkan logika untuk login dengan Apple
-                              print('Login with Apple');
-                            },
-                          ),
-                        ],
                       ),
                     ],
                   ),

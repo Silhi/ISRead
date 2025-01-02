@@ -1,9 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:isread/pages/book_view.dart';
 import 'package:isread/pages/home_view.dart';
 import 'package:isread/pages/login_page.dart';
 import 'package:isread/pages/welcome_screen.dart';
+import 'package:isread/pages/profile_page.dart';
 
 import 'package:isread/admin_dashboard/book_dashboard.dart';
 
@@ -37,7 +39,7 @@ class MyApp extends StatelessWidget {
           surface: Color(0xff112D4E),
         ),
       ),
-      initialRoute: 'book_dashboard',
+      initialRoute: 'welcome_screen',
       routes: {
         'home_page': (context) => HomeView(onCategorySelected: (category) {}),
         'book_page': (context) => BookView(selectedCategory: 'All'),
