@@ -15,6 +15,7 @@ class ScanView extends StatefulWidget {
 }
 
 class _ScanViewState extends State<ScanView> {
+  int _selectedIndex = 2;
   final MobileScannerController _controller = MobileScannerController();
   bool _isProcessing = false;
   DataService ds = DataService();
@@ -94,27 +95,36 @@ class _ScanViewState extends State<ScanView> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Scan Barcode'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        title: const Text(
+          'Scan Barcode',
+          style: TextStyle(color: Colors.black),
         ),
+        backgroundColor: Colors.white,
       ),
       body: Stack(
         children: [
-          MobileScanner(
-            controller: _controller,
-            onDetect: (BarcodeCapture capture) {
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                if (barcode.rawValue != null) {
-                  _handleBarcode(barcode.rawValue!);
-                  break;
-                }
-              }
-            },
+          Center(
+            child: ClipRect(
+              child: Align(
+                alignment: Alignment.center,
+                child: Container(
+                  width: 300,
+                  height: 100,
+                  child: MobileScanner(
+                    controller: _controller,
+                    onDetect: (BarcodeCapture capture) {
+                      final List<Barcode> barcodes = capture.barcodes;
+                      for (final barcode in barcodes) {
+                        if (barcode.rawValue != null) {
+                          _handleBarcode(barcode.rawValue!);
+                          break;
+                        }
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
           ),
           Align(
             alignment: Alignment.bottomCenter,
@@ -133,6 +143,57 @@ class _ScanViewState extends State<ScanView> {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+          switch (index) {
+            case 0:
+              if (ModalRoute.of(context)?.settings.name != 'home_page') {
+                Navigator.pushReplacementNamed(context, 'home_page');
+              }
+              break;
+            case 1:
+              if (ModalRoute.of(context)?.settings.name != 'book_page') {
+                Navigator.pushReplacementNamed(context, 'book_page');
+              }
+              break;
+            case 2:
+              if (ModalRoute.of(context)?.settings.name != 'scan_page') {
+                Navigator.pushReplacementNamed(context, 'scan_page');
+              }
+              break;
+            case 3:
+              if (ModalRoute.of(context)?.settings.name != 'profile_page') {
+                Navigator.pushReplacementNamed(context, 'profile_page');
+              }
+              break;
+          }
+        },
+        backgroundColor: const Color(0xff112D4E),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: const Color(0xffDBE2EF),
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            label: 'Books',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code_scanner),
+            label: 'Scan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Profile',
           ),
         ],
       ),
