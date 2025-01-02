@@ -11,6 +11,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:isread/pages/scan_view.dart';
 
+import 'package:isread/admin_dashboard/form_add_book.dart';
+import 'package:isread/admin_dashboard/form_edit_book.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -42,6 +45,8 @@ class MyApp extends StatelessWidget {
         'book_dashboard': (context) => BookDashboard(),
         'login_page': (context) => LoginPage(),
         'scan_page': (context) => ScanView(),
+        'add_book_page': (context) => AddBookPage(),
+        'edit_book_page': (context) => EditBookPage(),
       },
     );
   }
