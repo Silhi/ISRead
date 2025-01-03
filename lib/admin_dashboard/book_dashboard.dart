@@ -9,6 +9,11 @@ import 'package:isread/models/user_model.dart';
 import 'package:isread/utils/restapi.dart';
 import 'package:isread/utils/config.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:google_fonts/google_fonts.dart' as gf;
+import 'package:printing/printing.dart';
+import 'package:barcode/barcode.dart';
 
 import 'package:isread/admin_dashboard/book_details.dart';
 
@@ -35,6 +40,8 @@ class BookDashboardState extends State<BookDashboard> {
 
   String searchQuery = '';
   String filterCategory = '';
+
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -82,6 +89,203 @@ class BookDashboardState extends State<BookDashboard> {
       });
     } catch (e) {
       print("Error fetching data: $e");
+    }
+  }
+
+  Future<List<BukuModel>> selectAllBuku() async {
+    final String jsonResponse =
+        await ds.selectAll(token, project, 'buku', appid);
+    final List data = jsonDecode(jsonResponse);
+    return data.map((e) => BukuModel.fromJson(e)).toList();
+  }
+
+  Future<void> exportDataToPDF() async {
+    setState(() {
+      _isLoading = true; // Tampilkan indikator loading
+    });
+
+    try {
+      final List<BukuModel> allBuku = await selectAllBuku();
+
+      if (allBuku.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No books found in the database.')),
+        );
+        return;
+      }
+
+      final pdf = pw.Document();
+      final font = await PdfGoogleFonts.notoSansRegular();
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Barcode Buku',
+                  style: pw.TextStyle(fontSize: 24, font: font),
+                ),
+                pw.SizedBox(height: 16),
+                pw.Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: allBuku.map((buku) {
+                    final barcode = Barcode.code128();
+                    final barcodeSvg = barcode.toSvg(
+                      buku.id,
+                      width: 200,
+                      height: 80,
+                      fontHeight: 0,
+                    );
+
+                    return pw.Column(
+                      mainAxisSize: pw.MainAxisSize.min,
+                      children: [
+                        pw.Container(
+                          width: 200,
+                          height: 80,
+                          child: pw.SvgImage(
+                              svg: barcodeSvg), // Menampilkan barcode
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          buku.kode_buku,
+                          style: pw.TextStyle(fontSize: 12, font: font),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      final pdfBytes = await pdf.save();
+      await Printing.sharePdf(
+        bytes: pdfBytes,
+        filename: 'Barcode Buku IS.pdf',
+      );
+    } catch (e) {
+      print("Error exporting PDF: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to export barcodes to PDF.')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false; // Sembunyikan indikator loading
+      });
+    }
+  }
+
+  Future<void> selectAllBukuAndUpdateState() async {
+    try {
+      final allBuku = await selectAllBuku();
+      setState(() {
+        buku = allBuku;
+      });
+    } catch (e) {
+      print("Error fetching books: $e");
+    }
+  }
+
+  Future<int> countBooksByCategory(String category) async {
+    final String jsonResponse = await ds.selectWhere(
+      token,
+      project,
+      'buku',
+      appid,
+      'kategori_buku', // field yang digunakan untuk pencarian
+      category, // nilai kategori yang dicari
+    );
+
+    final List data = jsonDecode(jsonResponse);
+    return data.length;
+  }
+
+  Future<bool> updateBookCode(
+      String whereField, String whereValue, String newCode) async {
+    return await ds.updateId(
+        'kode_buku', newCode, token, project, 'buku', appid, whereValue);
+  }
+
+  Future<void> generateAutomaticCodes() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final List<BukuModel> allBuku = await selectAllBuku();
+
+      if (allBuku.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No books found in the database.')),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      for (var buku in allBuku) {
+        if (buku.kode_buku == "-") {
+          final String? kategori = buku.kategori_buku;
+          if (kategori == null || kategori.isEmpty) {
+            continue;
+          }
+
+          String? kodePrefix;
+          switch (kategori) {
+            case 'Tugas Akhir':
+              kodePrefix = 'TA';
+              break;
+            case 'Skripsi':
+              kodePrefix = 'SK';
+              break;
+            case 'Laporan Praktik Kerja':
+              kodePrefix = 'KP';
+              break;
+            case 'Laporan Akhir MBKM':
+              kodePrefix = 'MBKM';
+              break;
+            default:
+              continue;
+          }
+
+          int existingCount = await countBooksByCategory(kategori);
+          final String urutan = (existingCount).toString().padLeft(3, '0');
+
+          final String penerbit = buku.penerbit;
+          if (penerbit.isEmpty || !penerbit.startsWith('16')) {
+            continue;
+          }
+
+          final String penerbitCode =
+              penerbit.substring(2, 6) + '-' + penerbit.substring(6);
+
+          final String newKode = '$kodePrefix-$urutan-$penerbitCode';
+
+          final bool updated = await updateBookCode('_id', buku.id, newKode);
+
+          if (!updated) {
+            print("Failed to update book ID ${buku.id}.");
+          }
+        }
+      }
+    } catch (e) {
+      print("An error occurred during the automatic code generation: $e");
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Automatic code generation process completed. Check logs for details.')),
+      );
     }
   }
 
@@ -391,7 +595,7 @@ class BookDashboardState extends State<BookDashboard> {
         children: [
           ElevatedButton.icon(
             onPressed: () {
-              // Add PDF export functionality
+              exportDataToPDF();
             },
             icon: const Icon(Icons.picture_as_pdf),
             label: const Text("Export PDF"),
@@ -403,7 +607,7 @@ class BookDashboardState extends State<BookDashboard> {
           const SizedBox(width: 16),
           ElevatedButton.icon(
             onPressed: () {
-              // Add scan label functionality
+              generateAutomaticCodes();
             },
             icon: const Icon(Icons.qr_code_scanner),
             label: const Text("Generate Code"),
@@ -459,6 +663,10 @@ class BookDashboardState extends State<BookDashboard> {
                               style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         DataColumn(
+                          label: Text('Kode Buku',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        DataColumn(
                           label: Text('Action',
                               style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
@@ -504,6 +712,16 @@ class BookDashboardState extends State<BookDashboard> {
                                 width: constraints.maxWidth * 0.20, // Lebar 20%
                                 child: Text(
                                   book.pengarang,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                width: constraints.maxWidth * 0.20, // Lebar 20%
+                                child: Text(
+                                  book.kode_buku,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
