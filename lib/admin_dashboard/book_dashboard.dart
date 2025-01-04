@@ -230,8 +230,6 @@ class BookDashboardState extends State<BookDashboard> {
         return;
       }
 
-      Map<String, int> categoryCount = {};
-
       for (var buku in allBuku) {
         if (buku.kode_buku == "-") {
           final String? kategori = buku.kategori_buku;
@@ -257,9 +255,8 @@ class BookDashboardState extends State<BookDashboard> {
               continue;
           }
 
-          categoryCount[kategori] = (categoryCount[kategori] ?? 0) + 1;
-          final String urutan =
-              categoryCount[kategori]!.toString().padLeft(3, '0');
+          int existingCount = await countBooksByCategory(kategori);
+          final String urutan = (existingCount).toString().padLeft(3, '0');
 
           final String penerbit = buku.penerbit;
           if (penerbit.isEmpty || !penerbit.startsWith('16')) {
@@ -666,6 +663,10 @@ class BookDashboardState extends State<BookDashboard> {
                               style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         DataColumn(
+                          label: Text('Kode Buku',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        DataColumn(
                           label: Text('Action',
                               style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
@@ -711,6 +712,16 @@ class BookDashboardState extends State<BookDashboard> {
                                 width: constraints.maxWidth * 0.20, // Lebar 20%
                                 child: Text(
                                   book.pengarang,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Container(
+                                width: constraints.maxWidth * 0.20, // Lebar 20%
+                                child: Text(
+                                  book.kode_buku,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
