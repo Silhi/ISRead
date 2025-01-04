@@ -1,32 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:isread/pages/welcome_screen.dart';
-
+import 'package:isread/pages/welcome_page.dart';
+import 'package:isread/models/user_model.dart';
 import 'package:isread/utils/fire_auth.dart';
 
 class ProfilePage extends StatefulWidget {
-  final User user;
+  final Map<String, dynamic>? userData;
 
-  const ProfilePage({super.key, required this.user});
+  const ProfilePage({super.key, this.userData});
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  int _selectedIndex = 3;
+  UserModel? currentUser;
   bool _isSendingVerification = false;
   bool _isSigningOut = false;
 
-  late User _currentUser;
-
   @override
   void initState() {
-    _currentUser = widget.user;
     super.initState();
+    processUserData();
+  }
+
+  void processUserData() {
+    if (widget.userData != null && widget.userData!.isNotEmpty) {
+      setState(() {
+        currentUser = UserModel.fromJson(widget.userData!);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Get the current Firebase user
+    User? firebaseUser = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -35,63 +46,22 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Display username (or name if it's not set)
             Text(
-              'NAME: ${_currentUser.displayName}',
+              'Username: ${currentUser?.username ?? "No username available"}',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
+            // Display NRP (assuming it is part of UserModel)
             Text(
-              'EMAIL: ${_currentUser.email}',
+              'NRP: ${currentUser?.nrp ?? "No NRP available"}',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            // Display email
+            Text(
+              'Email: ${currentUser?.email ?? firebaseUser?.email ?? "No email available"}',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16.0),
-            _currentUser.emailVerified
-                ? Text(
-                    'Email verified',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge!
-                        .copyWith(color: Colors.green),
-                  )
-                : Text(
-                    'Email not verified',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge!
-                        .copyWith(color: Colors.red),
-                  ),
-            const SizedBox(height: 16.0),
-            _isSendingVerification
-                ? const CircularProgressIndicator()
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () async {
-                          setState(() {
-                            _isSendingVerification = true;
-                          });
-                          await _currentUser.sendEmailVerification();
-                          setState(() {
-                            _isSendingVerification = false;
-                          });
-                        },
-                        child: const Text('Verify email'),
-                      ),
-                      const SizedBox(width: 8.0),
-                      IconButton(
-                        icon: const Icon(Icons.refresh),
-                        onPressed: () async {
-                          User? user = await FireAuth.refreshUser(_currentUser);
-
-                          if (user != null) {
-                            setState(() {
-                              _currentUser = user;
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
             const SizedBox(height: 16.0),
             _isSigningOut
                 ? const CircularProgressIndicator()
@@ -120,6 +90,73 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+          switch (index) {
+            case 0:
+              if (ModalRoute.of(context)?.settings.name != 'home_page') {
+                Navigator.pushReplacementNamed(
+                  context,
+                  'home_page',
+                  arguments: widget.userData,
+                );
+              }
+              break;
+            case 1: // For Books
+              if (ModalRoute.of(context)?.settings.name != 'book_page') {
+                Navigator.pushReplacementNamed(
+                  context,
+                  'book_page',
+                  arguments: widget.userData,
+                );
+              }
+              break;
+            case 2:
+              if (ModalRoute.of(context)?.settings.name != 'scan_page') {
+                Navigator.pushReplacementNamed(
+                  context,
+                  'scan_page',
+                  arguments: widget.userData,
+                );
+              }
+              break;
+            case 3:
+              if (ModalRoute.of(context)?.settings.name != 'profile_page') {
+                Navigator.pushReplacementNamed(
+                  context,
+                  'profile_page',
+                  arguments: widget.userData,
+                );
+              }
+              break;
+          }
+        },
+        backgroundColor: const Color(0xff112D4E),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: const Color(0xffDBE2EF),
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            label: 'Books',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code_scanner),
+            label: 'Scan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
