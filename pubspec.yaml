@@ -50,6 +50,7 @@ dependencies:
   barcode_widget: ^2.0.4
   google_fonts: ^6.2.1
   printing: ^5.13.4
+  file_picker: ^8.1.7
 
 dev_dependencies:
   flutter_test:
