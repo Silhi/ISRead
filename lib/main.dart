@@ -1,17 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:isread/pages/book_view.dart';
-import 'package:isread/pages/home_view.dart';
+import 'package:isread/pages/book_page.dart';
+import 'package:isread/pages/home_page.dart';
 import 'package:isread/pages/login_page.dart';
-import 'package:isread/pages/welcome_screen.dart';
+import 'package:isread/pages/welcome_page.dart';
 import 'package:isread/pages/profile_page.dart';
 
 import 'package:isread/admin_dashboard/book_dashboard.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:isread/pages/scan_view.dart';
+import 'package:isread/pages/scan_page.dart';
 
 import 'package:isread/admin_dashboard/form_add_book.dart';
 import 'package:isread/admin_dashboard/form_edit_book.dart';
@@ -49,6 +49,7 @@ class MyApp extends StatelessWidget {
         'scan_page': (context) => ScanView(),
         'add_book_page': (context) => AddBookPage(),
         'edit_book_page': (context) => EditBookPage(),
+        'profile_page': (context) => ProfilePage(),
       },
     );
   }

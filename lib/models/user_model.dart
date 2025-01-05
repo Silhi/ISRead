@@ -26,4 +26,16 @@ class UserModel {
         no_telpon: data['no_telpon'],
         role: data['role']);
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'nrp': nrp,
+      'email': email,
+      'password': password,
+      'no_telpon': no_telpon,
+      'role': role,
+    };
+  }
 }
