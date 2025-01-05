@@ -226,7 +226,7 @@ class _HomeViewState extends State<HomeView> {
                                 ),
                                 currentUser != null
                                     ? Text(
-                                        currentUser!.nrp ?? "NRP tidak ada",
+                                        currentUser!.nrp,
                                         style: const TextStyle(
                                           fontSize: 14.0,
                                           color: Colors.black,
@@ -335,7 +335,7 @@ class _HomeViewState extends State<HomeView> {
                                             // Gambar buku
                                             Expanded(
                                               child: Image.asset(
-                                                "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                                "assets/sampul/${bukuItem.kategori_buku}.jpeg",
                                                 fit: BoxFit.cover,
                                                 width: double.infinity,
                                                 errorBuilder: (BuildContext
@@ -558,7 +558,7 @@ class _HomeViewState extends State<HomeView> {
                                         borderRadius:
                                             BorderRadius.circular(8.0),
                                         child: Image.asset(
-                                          "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                          "assets/sampul/${bukuItem.kategori_buku}.jpeg",
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           errorBuilder: (BuildContext context,
@@ -659,7 +659,7 @@ class _HomeViewState extends State<HomeView> {
                                         borderRadius:
                                             BorderRadius.circular(8.0),
                                         child: Image.asset(
-                                          "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                          "assets/sampul/${bukuItem.kategori_buku}.jpeg",
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           errorBuilder: (BuildContext context,
