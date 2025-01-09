@@ -53,6 +53,6 @@ class Validator {
     if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
       return 'Nomor telepon hanya boleh berisi angka';
     }
-    return null; // Jika valid
+    return null; 
   }
 }

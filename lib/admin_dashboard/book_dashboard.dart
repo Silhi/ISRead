@@ -198,12 +198,28 @@ class BookDashboardState extends State<BookDashboard> {
       project,
       'buku',
       appid,
-      'kategori_buku', // field yang digunakan untuk pencarian
-      category, // nilai kategori yang dicari
+      'kategori_buku',
+      category,
     );
 
     final List data = jsonDecode(jsonResponse);
-    return data.length;
+
+    int maxCode = 0;
+
+    for (var item in data) {
+      final String kodeBuku = item['kode_buku'];
+      if (kodeBuku.isNotEmpty) {
+        var parts = kodeBuku.split('-');
+        if (parts.length > 1) {
+          var urutan = int.tryParse(parts[1]);
+          if (urutan != null && urutan > maxCode) {
+            maxCode = urutan;
+          }
+        }
+      }
+    }
+
+    return maxCode;
   }
 
   Future<bool> updateBookCode(
@@ -213,6 +229,8 @@ class BookDashboardState extends State<BookDashboard> {
   }
 
   Future<void> generateAutomaticCodes() async {
+    await Future.delayed(Duration(seconds: 1));
+
     setState(() {
       _isLoading = true;
     });
@@ -256,7 +274,7 @@ class BookDashboardState extends State<BookDashboard> {
           }
 
           int existingCount = await countBooksByCategory(kategori);
-          final String urutan = (existingCount).toString().padLeft(3, '0');
+          final String urutan = (existingCount + 1).toString().padLeft(3, '0');
 
           final String penerbit = buku.penerbit;
           if (penerbit.isEmpty || !penerbit.startsWith('16')) {
@@ -307,6 +325,14 @@ class BookDashboardState extends State<BookDashboard> {
         if (category == null || category.isEmpty) return true;
         return item.kategori_buku.toLowerCase() == category.toLowerCase();
       }).toList();
+    });
+  }
+
+  bool _isFabVisible = true; // Status untuk visibilitas FAB
+
+  void _toggleFab() {
+    setState(() {
+      _isFabVisible = !_isFabVisible; // Toggle visibilitas FAB
     });
   }
 
@@ -404,7 +430,7 @@ class BookDashboardState extends State<BookDashboard> {
                 title: Text('Logout'),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, 'login_page');
+                  Navigator.pushNamed(context, 'welcome_screen');
                 },
                 hoverColor: Colors.grey[200],
               ),
@@ -412,24 +438,54 @@ class BookDashboardState extends State<BookDashboard> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            statisticsGrid(),
-            triggerSection(),
-            filterAndSearchSection(),
-            dataTable(context),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, 'add_book_page');
-        },
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add, color: Colors.white),
-        tooltip: 'Add Book',
+      body: Stack(
+        children: [
+          // Konten utama termasuk DataTable
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                statisticsGrid(),
+                triggerSection(),
+                filterAndSearchSection(),
+                dataTable(context),
+              ],
+            ),
+          ),
+          // Tombol panah untuk kontrol FAB
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    _isFabVisible
+                        ? Icons.keyboard_double_arrow_right
+                        : Icons.keyboard_double_arrow_left,
+                    color: Colors.blueAccent,
+                    size: 30, // Ukuran ikon lebih besar agar lebih mencolok
+                  ),
+                  onPressed: _toggleFab,
+                ),
+                if (_isFabVisible) // FAB hanya ditampilkan jika diperlukan
+                  FloatingActionButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, 'add_book_page')
+                          .then((result) {
+                        if (result == true) {
+                          fetchData();
+                        }
+                      });
+                    },
+                    backgroundColor: Colors.blue,
+                    child: const Icon(Icons.add, color: Colors.white),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -606,8 +662,9 @@ class BookDashboardState extends State<BookDashboard> {
           ),
           const SizedBox(width: 16),
           ElevatedButton.icon(
-            onPressed: () {
-              generateAutomaticCodes();
+            onPressed: () async {
+              await generateAutomaticCodes();
+              fetchData();
             },
             icon: const Icon(Icons.qr_code_scanner),
             label: const Text("Generate Code"),
@@ -637,18 +694,18 @@ class BookDashboardState extends State<BookDashboard> {
                   constraints: BoxConstraints(minWidth: constraints.maxWidth),
                   child: DataTableTheme(
                     data: DataTableThemeData(
-                      headingRowColor: MaterialStateProperty.all(
-                          Colors.grey[200]), // Warna header
+                      headingRowColor:
+                          MaterialStateProperty.all(Colors.grey[200]),
                       headingTextStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
-                      ), // Gaya teks header
+                      ),
                     ),
                     child: DataTable(
-                      columnSpacing: 16.0, // Spasi antar kolom
-                      horizontalMargin: 12.0, // Margin horizontal
-                      dataRowHeight: 70.0, // Tinggi baris data
-                      headingRowHeight: 50.0, // Tinggi baris heading
+                      columnSpacing: 16.0,
+                      horizontalMargin: 12.0,
+                      dataRowHeight: 70.0,
+                      headingRowHeight: 50.0,
                       columns: const [
                         DataColumn(
                           label: Text('Title',
@@ -677,7 +734,6 @@ class BookDashboardState extends State<BookDashboard> {
                             DataCell(
                               GestureDetector(
                                 onTap: () {
-                                  // Navigasi ke halaman detail
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -687,8 +743,7 @@ class BookDashboardState extends State<BookDashboard> {
                                   );
                                 },
                                 child: Container(
-                                  width:
-                                      constraints.maxWidth * 0.60, // Lebar 60%
+                                  width: constraints.maxWidth * 0.60,
                                   child: Text(
                                     book.judul_buku,
                                     maxLines: 3,
@@ -699,7 +754,7 @@ class BookDashboardState extends State<BookDashboard> {
                             ),
                             DataCell(
                               Container(
-                                width: constraints.maxWidth * 0.20, // Lebar 20%
+                                width: constraints.maxWidth * 0.20,
                                 child: Text(
                                   book.kategori_buku,
                                   maxLines: 2,
@@ -709,7 +764,7 @@ class BookDashboardState extends State<BookDashboard> {
                             ),
                             DataCell(
                               Container(
-                                width: constraints.maxWidth * 0.20, // Lebar 20%
+                                width: constraints.maxWidth * 0.20,
                                 child: Text(
                                   book.pengarang,
                                   maxLines: 2,
@@ -719,7 +774,7 @@ class BookDashboardState extends State<BookDashboard> {
                             ),
                             DataCell(
                               Container(
-                                width: constraints.maxWidth * 0.20, // Lebar 20%
+                                width: constraints.maxWidth * 0.20,
                                 child: Text(
                                   book.kode_buku,
                                   maxLines: 2,
@@ -734,48 +789,117 @@ class BookDashboardState extends State<BookDashboard> {
                                     icon: const Icon(Icons.edit,
                                         color: Colors.blue),
                                     onPressed: () {
+                                      // Navigasi ke halaman edit
                                       Navigator.pushNamed(
                                         context,
                                         'edit_book_page',
                                         arguments: [book.id],
-                                      );
+                                      ).then((_) {
+                                        // Setelah kembali dari halaman edit, panggil fetchData untuk menyegarkan data
+                                        fetchData();
+                                      });
                                     },
                                   ),
+                                  // After deleting a book
                                   IconButton(
                                     icon: const Icon(Icons.delete,
                                         color: Colors.red),
                                     onPressed: () async {
-                                      bool response = await ds.removeId(
-                                        token,
-                                        project,
-                                        'buku',
-                                        appid,
-                                        book.id, // Pastikan ID buku yang benar dikirim
+                                      // Tampilkan dialog konfirmasi
+                                      bool? shouldDelete =
+                                          await showDialog<bool>(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            backgroundColor: Colors.grey[
+                                                100], // Latar belakang elegan
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      10), // Sudut membulat
+                                            ),
+                                            title: const Text(
+                                              'Konfirmasi Hapus',
+                                              style: TextStyle(
+                                                color: Colors
+                                                    .black87, // Warna teks judul
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            content: const Text(
+                                              'Apakah Anda yakin ingin menghapus buku ini?',
+                                              style: TextStyle(
+                                                color: Colors
+                                                    .black54, // Warna teks konten
+                                              ),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                child: const Text(
+                                                  'Batal',
+                                                  style: TextStyle(
+                                                    color: Colors
+                                                        .blueGrey, // Warna teks tombol batal
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop(
+                                                      false); // Menutup dialog dan batal hapus
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: const Text(
+                                                  'Hapus',
+                                                  style: TextStyle(
+                                                    color: Colors
+                                                        .redAccent, // Warna teks tombol hapus
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop(
+                                                      true); // Menutup dialog dan lanjut hapus
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       );
 
-                                      if (response) {
-                                        setState(() {
-                                          // Hapus buku dari daftar yang ditampilkan
-                                          filteredBuku.removeWhere(
-                                              (item) => item.id == book.id);
-                                          buku.removeWhere(
-                                              (item) => item.id == book.id);
-                                          totalBooks = buku.length;
-                                        });
+                                      // Jika pengguna memilih untuk menghapus
+                                      if (shouldDelete == true) {
+                                        bool response = await ds.removeId(
+                                          token,
+                                          project,
+                                          'buku',
+                                          appid,
+                                          book.id,
+                                        );
 
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(
-                                          content: Text(
-                                              'Book successfully removed!'),
-                                          backgroundColor: Colors.green,
-                                        ));
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(
-                                          content: Text(
-                                              'Failed to remove book from database.'),
-                                          backgroundColor: Colors.red,
-                                        ));
+                                        if (response) {
+                                          setState(() {
+                                            filteredBuku.removeWhere(
+                                                (item) => item.id == book.id);
+                                            buku.removeWhere(
+                                                (item) => item.id == book.id);
+                                            totalBooks = buku.length;
+                                          });
+
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                            content:
+                                                Text('Buku berhasil dihapus!'),
+                                            backgroundColor: Colors.green,
+                                          ));
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                            content: Text(
+                                                'Gagal menghapus buku dari database.'),
+                                            backgroundColor: Colors.red,
+                                          ));
+                                        }
                                       }
                                     },
                                   ),
