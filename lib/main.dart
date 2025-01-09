@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:isread/pages/book_page.dart';
 import 'package:isread/pages/home_page.dart';
 import 'package:isread/pages/login_page.dart';
-import 'package:isread/pages/welcome_page.dart';
-import 'package:isread/pages/profile_page.dart';
+
+import 'package:isread/pages/welcome_screen.dart';
+import 'package:isread/pages/register_page.dart';
+import 'package:isread/pages/splash_screen.dart';
 
 import 'package:isread/admin_dashboard/book_dashboard.dart';
 
@@ -38,7 +40,7 @@ class MyApp extends StatelessWidget {
           surface: Color(0xff112D4E),
         ),
       ),
-      initialRoute: 'home_page',
+      initialRoute: 'splash_screen',
       routes: {
         'home_page': (context) => HomeView(onCategorySelected: (category) {}),
         'book_page': (context) => BookView(selectedCategory: 'All'),
@@ -49,6 +51,8 @@ class MyApp extends StatelessWidget {
         'add_book_page': (context) => AddBookPage(),
         'edit_book_page': (context) => EditBookPage(),
         'profile_page': (context) => ProfilePage(),
+        'register_page': (context) => RegisterPage(),
+        'splash_screen': (context) => SplashScreen(),
       },
     );
   }
