@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:isread/pages/home_view.dart';
+import 'package:isread/pages/home_page.dart';
 import 'package:isread/widgets/custom_scaffold.dart';
 
 class SplashScreen extends StatefulWidget {

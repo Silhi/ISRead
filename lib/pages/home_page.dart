@@ -1,15 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:isread/color/color_extenstion.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shimmer/shimmer.dart';
-
-import 'package:isread/pages/welcome_screen.dart';
-import 'package:isread/pages/book_detail_screen.dart';
-import 'package:isread/pages/book_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:isread/theme/color_extenstion.dart';
+import 'package:isread/pages/welcome_page.dart';
+import 'package:isread/pages/book_detail_page.dart';
+import 'package:isread/pages/book_page.dart';
 import 'package:isread/models/book_model.dart';
 import 'package:isread/models/user_model.dart';
 import 'package:isread/utils/config.dart';
@@ -38,8 +36,19 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
+    processUserData();
     selectAllBook();
-    checkLoginStatus();
+  }
+
+  Future<void> processUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userData = prefs.getString('userData');
+
+    if (userData != null && userData.isNotEmpty) {
+      setState(() {
+        currentUser = UserModel.fromJson(jsonDecode(userData));
+      });
+    }
   }
 
   Future<void> selectAllBook() async {
@@ -69,21 +78,6 @@ class _HomeViewState extends State<HomeView> {
     setState(() {
       buku = search_data;
     });
-  }
-
-  Future<void> checkLoginStatus() async {
-    String? userData = await getUserDataFromStorage();
-    if (userData != null) {
-      Map<String, dynamic> userMap = jsonDecode(userData);
-      setState(() {
-        currentUser = UserModel.fromJson(userMap);
-      });
-    }
-  }
-
-  Future<String?> getUserDataFromStorage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('user_data');
   }
 
   @override
@@ -307,7 +301,6 @@ class _HomeViewState extends State<HomeView> {
                                   var bukuItem = buku[itemIndex];
                                   return GestureDetector(
                                     onTap: () {
-                                      // Navigate to the BookDetailScreen when tapped
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -342,7 +335,7 @@ class _HomeViewState extends State<HomeView> {
                                             // Gambar buku
                                             Expanded(
                                               child: Image.asset(
-                                                "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                                "assets/sampul/${bukuItem.kategori_buku}.jpeg",
                                                 fit: BoxFit.cover,
                                                 width: double.infinity,
                                                 errorBuilder: (BuildContext
@@ -565,7 +558,7 @@ class _HomeViewState extends State<HomeView> {
                                         borderRadius:
                                             BorderRadius.circular(8.0),
                                         child: Image.asset(
-                                          "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                          "assets/sampul/${bukuItem.kategori_buku}.jpeg",
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           errorBuilder: (BuildContext context,
@@ -666,7 +659,7 @@ class _HomeViewState extends State<HomeView> {
                                         borderRadius:
                                             BorderRadius.circular(8.0),
                                         child: Image.asset(
-                                          "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                          "assets/sampul/${bukuItem.kategori_buku}.jpeg",
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           errorBuilder: (BuildContext context,
@@ -730,22 +723,34 @@ class _HomeViewState extends State<HomeView> {
           switch (index) {
             case 0:
               if (ModalRoute.of(context)?.settings.name != 'home_page') {
-                Navigator.pushReplacementNamed(context, 'home_page');
+                Navigator.pushReplacementNamed(
+                  context,
+                  'home_page',
+                );
               }
               break;
-            case 1:
+            case 1: // For Books
               if (ModalRoute.of(context)?.settings.name != 'book_page') {
-                Navigator.pushReplacementNamed(context, 'book_page');
+                Navigator.pushReplacementNamed(
+                  context,
+                  'book_page',
+                );
               }
               break;
             case 2:
               if (ModalRoute.of(context)?.settings.name != 'scan_page') {
-                Navigator.pushReplacementNamed(context, 'scan_page');
+                Navigator.pushReplacementNamed(
+                  context,
+                  'scan_page',
+                );
               }
               break;
             case 3:
               if (ModalRoute.of(context)?.settings.name != 'profile_page') {
-                Navigator.pushReplacementNamed(context, 'profile_page');
+                Navigator.pushReplacementNamed(
+                  context,
+                  'profile_page',
+                );
               }
               break;
           }

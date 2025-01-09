@@ -2,15 +2,17 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-
-import 'package:isread/pages/book_detail_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:isread/pages/book_detail_page.dart';
 import 'package:isread/models/book_model.dart';
+import 'package:isread/models/user_model.dart';
 import 'package:isread/utils/config.dart';
 import 'package:isread/utils/restapi.dart';
 
 class BookView extends StatefulWidget {
   final String selectedCategory;
-  const BookView({super.key, required this.selectedCategory});
+  final Map<String, dynamic>? userData;
+  const BookView({super.key, required this.selectedCategory, this.userData});
 
   @override
   State<BookView> createState() => _BookViewState();
@@ -21,7 +23,7 @@ class _BookViewState extends State<BookView> {
   TextEditingController txtSearch = TextEditingController();
   TextEditingController txtStartYear = TextEditingController();
   TextEditingController txtEndYear = TextEditingController();
-
+  UserModel? currentUser;
   int selectTag = 0;
   List<String> tagsArr = ["All", "TA", "KP", "MBKM", "BUKU"];
 
@@ -36,11 +38,24 @@ class _BookViewState extends State<BookView> {
   @override
   void initState() {
     super.initState();
+    checkLoginStatus();
     selectedCategory =
         widget.selectedCategory.isNotEmpty ? widget.selectedCategory : "All";
     selectTag = tagsArr.indexOf(widget.selectedCategory ?? "All");
     filterByTag(selectedCategory);
     selectAllBook();
+  }
+
+  Future<void> checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userData = prefs.getString('userData');
+
+    if (userData != null && userData.isNotEmpty) {
+      setState(() {
+        currentUser =
+            UserModel.fromJson(jsonDecode(userData)); // Menyimpan data pengguna
+      });
+    }
   }
 
   Future<void> selectAllBook() async {
@@ -293,8 +308,9 @@ class _BookViewState extends State<BookView> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  BookDetailScreen(bookId: bukuItem.id),
+                              builder: (context) => BookDetailScreen(
+                                  bookId: bukuItem.id,
+                                  userData: widget.userData),
                             ),
                           );
                         },
@@ -386,26 +402,37 @@ class _BookViewState extends State<BookView> {
             _selectedIndex = index; // Perbarui tab yang aktif
           });
 
-          // Navigasi hanya jika halaman berbeda
           switch (index) {
             case 0:
               if (ModalRoute.of(context)?.settings.name != 'home_page') {
-                Navigator.pushReplacementNamed(context, 'home_page');
+                Navigator.pushReplacementNamed(
+                  context,
+                  'home_page',
+                );
               }
               break;
-            case 1:
+            case 1: // For Books
               if (ModalRoute.of(context)?.settings.name != 'book_page') {
-                Navigator.pushReplacementNamed(context, 'book_page');
+                Navigator.pushReplacementNamed(
+                  context,
+                  'book_page',
+                );
               }
               break;
             case 2:
               if (ModalRoute.of(context)?.settings.name != 'scan_page') {
-                Navigator.pushReplacementNamed(context, 'scan_page');
+                Navigator.pushReplacementNamed(
+                  context,
+                  'scan_page',
+                );
               }
               break;
             case 3:
               if (ModalRoute.of(context)?.settings.name != 'profile_page') {
-                Navigator.pushReplacementNamed(context, 'profile_page');
+                Navigator.pushReplacementNamed(
+                  context,
+                  'profile_page',
+                );
               }
               break;
           }

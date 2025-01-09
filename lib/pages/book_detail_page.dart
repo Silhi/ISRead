@@ -1,15 +1,19 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-
+import 'package:isread/pages/peminjaman_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:isread/pages/welcome_page.dart';
 import 'package:isread/models/book_model.dart';
+import 'package:isread/models/user_model.dart';
 import 'package:isread/utils/restapi.dart';
 import 'package:isread/utils/config.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final String bookId;
+  final Map<String, dynamic>? userData;
 
-  const BookDetailScreen({Key? key, required this.bookId}) : super(key: key);
+  const BookDetailScreen({Key? key, required this.bookId, this.userData})
+      : super(key: key);
 
   @override
   State<BookDetailScreen> createState() => _BookDetailScreenState();
@@ -17,7 +21,7 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   bool isExpanded = false;
-
+  UserModel? currentUser;
   DataService ds = DataService();
   BukuModel? buku;
   List data = [];
@@ -31,27 +35,47 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     setState(() {});
   }
 
+  Future<int> findBorrowedBook(String idUser) async {
+    String response = await ds.selectWhere(
+        token, project, 'peminjaman', appid, 'id_user', idUser);
+
+    List<dynamic> peminjamanList = jsonDecode(response);
+
+    bool dataExists = peminjamanList.any((item) =>
+        item['status'] == 'Berlangsung' || item['status'] == 'Terlambat');
+
+    if (dataExists) {
+      return peminjamanList.length;
+    } else {
+      return 0;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    checkLoginStatus();
     selectIdBuku();
+  }
+
+  Future<void> checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userData = prefs.getString('userData');
+
+    if (userData != null && userData.isNotEmpty) {
+      setState(() {
+        currentUser = UserModel.fromJson(jsonDecode(userData));
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: buku?.status == "Tidak Tersedia"
+      bottomNavigationBar: currentUser == null
           ? Container(
               margin: const EdgeInsets.all(25),
-              child: const Text(
-                "Buku sedang dipinjam",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.red),
-              ),
-            )
-          : Container(
-              margin: const EdgeInsets.only(left: 25, right: 25, bottom: 25),
               height: 49,
               child: TextButton(
                 style: ButtonStyle(
@@ -62,9 +86,16 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                         borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
-                onPressed: () async {},
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
+                  );
+                },
                 child: const Text(
-                  'Pinjam Buku',
+                  'Login untuk Meminjam',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -72,7 +103,85 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   ),
                 ),
               ),
-            ),
+            )
+          : buku?.status == "Tidak Tersedia"
+              ? Container(
+                  margin: const EdgeInsets.all(25),
+                  child: const Text(
+                    "Buku sedang dipinjam",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.red),
+                  ),
+                )
+              : Container(
+                  margin:
+                      const EdgeInsets.only(left: 25, right: 25, bottom: 25),
+                  height: 49,
+                  child: TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                          Theme.of(context).colorScheme.surface),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    onPressed: () async {
+                      if (currentUser != null) {
+                        int borrowedCount =
+                            await findBorrowedBook(currentUser!.id);
+                        if (borrowedCount == 1) {
+                          // Tampilkan dialog pesan jika sudah meminjam 1 buku
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                title: const Text('Peringatan',
+                                    style: TextStyle(color: Colors.black)),
+                                content: const Text(
+                                  'Anda hanya dapat meminjam 1 buku.',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: const Text(
+                                      'Tutup',
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          // Arahkan ke halaman PeminjamanPage jika belum meminjam buku
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PeminjamanPage(
+                                bookId: buku?.id ?? "Null",
+                                userData: widget.userData,
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: const Text(
+                      'Pinjam Buku',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
       body: SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[

@@ -2,11 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:isread/utils/config.dart' as configUser;
-
-import 'package:isread/models/user_model.dart';
-import 'package:isread/pages/home_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:isread/pages/home_page.dart';
 import 'package:isread/admin_dashboard/book_dashboard.dart';
 import 'package:isread/utils/validator.dart';
 import 'package:isread/widgets/custom_scaffold.dart';
@@ -20,6 +18,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  String? userdata;
   final _formKey = GlobalKey<FormState>();
   final _emailTextController = TextEditingController();
   final _passwordTextController = TextEditingController();
@@ -79,122 +78,61 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<String?> fetchUserNrp(String email) async {
-    final url =
-        'https://io.etter.cloud/v4/select_all/token/${configUser.token}/project/${configUser.project}/collection/user/appid/${configUser.appid}?email=$email';
+  Future<String> fetchUserData(String token, String project, String collection,
+      String appid, String whereField, String whereValue) async {
+    String uri =
+        'https://io.etter.cloud/v4/select_where/token/$token/project/$project/collection/$collection/appid/$appid/where_field/$whereField/where_value/$whereValue';
 
     try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
-
-      debugPrint('Status Code: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
+      final response = await http.get(Uri.parse(uri));
 
       if (response.statusCode == 200) {
-        final List<dynamic> responseData = jsonDecode(response.body);
-
-        final user = responseData.firstWhere(
-          (user) => user['email'] == email,
-          orElse: () => null,
-        );
-
-        if (user != null) {
-          return user['nrp'];
-        } else {
-          debugPrint('User with email $email not found.');
-          return null;
-        }
+        return response.body;
       } else {
-        debugPrint('Failed to fetch role: ${response.statusCode}');
-        return null;
+        return '[]';
       }
     } catch (e) {
-      debugPrint('Error: $e');
-      return null;
+      return '[]';
     }
-  }
-
-  Future<UserModel?> fetchUserData(String email) async {
-    final url =
-        'https://io.etter.cloud/v4/select_all/token/${configUser.token}/project/${configUser.project}/collection/user/appid/${configUser.appid}?email=$email';
-
-    try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
-
-      debugPrint('Status Code: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final List<dynamic> responseData = jsonDecode(response.body);
-
-        // Cari user berdasarkan email
-        final userData = responseData.firstWhere(
-          (user) => user['email'] == email,
-          orElse: () => null,
-        );
-
-        if (userData != null) {
-          return UserModel.fromJson(userData); // Buat UserModel dari JSON
-        } else {
-          debugPrint('User dengan email $email tidak ditemukan.');
-          return null;
-        }
-      } else {
-        debugPrint('Gagal mengambil data user: ${response.statusCode}');
-        return null;
-      }
-    } catch (e) {
-      debugPrint('Error: $e');
-      return null;
-    }
-  }
-
-  Future<void> saveUserSession(UserModel user) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    Map<String, String> userData = {
-      'id': user.id,
-      'username': user.username,
-      'nrp': user.nrp,
-      'email': user.email,
-      'no_telpon': user.no_telpon,
-      'role': user.role,
-    };
-    await prefs.setString('user_data', jsonEncode(userData));
   }
 
   void handleLogin(UserCredential userCredential) async {
     try {
-      final user = await fetchUserData(userCredential.user!.email!);
+      final role = await fetchUserRole(userCredential.user!.email!);
 
-      if (user != null) {
-        await saveUserSession(user);
+      if (role != null) {
+        String userData = await fetchUserData(
+            configUser.token,
+            configUser.project,
+            'user',
+            configUser.appid,
+            'email',
+            userCredential.user!.email!);
 
-        if (user.role == 'admin') {
+        Map<String, dynamic> userMap =
+            jsonDecode(userData).isNotEmpty ? jsonDecode(userData).first : {};
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('userData', jsonEncode(userMap));
+
+        if (role == 'admin') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => const BookDashboard(),
+              builder: (context) => BookDashboard(),
             ),
           );
-        } else if (user.role == 'mahasiswa') {
+        } else if (role == 'mahasiswa') {
+          // Send userData to the HomeView screen
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => HomeView(onCategorySelected: (category) {}),
             ),
           );
         } else {
-          _showSnackBar('Role tidak dikenali: ${user.role}');
+          _showSnackBar('Role tidak dikenali: $role');
         }
       } else {
-        _showSnackBar('Gagal mengambil data pengguna');
+        _showSnackBar('Gagal mendapatkan role pengguna');
       }
     } catch (e) {
       _showSnackBar('Login gagal: ${e.toString()}');
