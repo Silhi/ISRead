@@ -116,14 +116,17 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                   buku?.sampul_buku == null
                               ? Colors.grey[300]
                               : null,
-                          image: buku?.sampul_buku != '-' &&
-                                  buku?.sampul_buku != null
+                          image: buku?.kategori_buku == 'Umum'
                               ? DecorationImage(
-                                  image: NetworkImage(buku?.sampul_buku ??
-                                      "assets/sampul/${buku?.kategori_buku}.jpeg"),
+                                  image: NetworkImage(
+                                      fileUri + (buku?.sampul_buku ?? "")),
                                   fit: BoxFit.cover,
                                 )
-                              : null,
+                              : DecorationImage(
+                                  image: AssetImage(
+                                      "assets/sampul/${buku?.kategori_buku}.jpeg"),
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                         child: buku?.sampul_buku == "-" ||
                                 buku?.sampul_buku == null

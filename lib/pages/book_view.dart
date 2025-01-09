@@ -307,24 +307,48 @@ class _BookViewState extends State<BookView> {
                                 child: Align(
                                   alignment: Alignment.topCenter,
                                   heightFactor: 1.0,
-                                  child: Image.asset(
-                                    "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
-                                    fit: BoxFit.fill,
-                                    height: 136,
-                                    width: 90,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: Colors.grey[200],
-                                        child: const Center(
-                                          child: Icon(
-                                            Icons.my_library_books_rounded,
-                                            size: 50,
-                                            color: Colors.grey,
-                                          ),
+                                  child: bukuItem?.kategori_buku == 'Umum'
+                                      ? Image.network(
+                                          fileUri +
+                                              (bukuItem?.sampul_buku ?? ""),
+                                          fit: BoxFit.fill,
+                                          height: 136,
+                                          width: 90,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[200],
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons
+                                                      .my_library_books_rounded,
+                                                  size: 50,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      : Image.asset(
+                                          "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                          fit: BoxFit.fill,
+                                          height: 136,
+                                          width: 90,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[200],
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons
+                                                      .my_library_books_rounded,
+                                                  size: 50,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            );
+                                          },
                                         ),
-                                      );
-                                    },
-                                  ),
                                 ),
                               ),
                               const SizedBox(height: 8.0),

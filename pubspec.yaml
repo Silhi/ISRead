@@ -50,6 +50,9 @@ dependencies:
   barcode_widget: ^2.0.4
   google_fonts: ^6.2.1
   printing: ^5.13.4
+  file_picker: ^8.1.7
+  http_parser: ^4.1.2
+  html: ^0.15.0
 
 dev_dependencies:
   flutter_test:
@@ -77,6 +80,9 @@ flutter:
     - assets/sampul/
     - assets/avatar/
     - assets/screen/bg1.png
+    - assets/screen/isreadlogo.png
+    - assets/screen/isread.jpeg
+    - assets/avatar/dummy.jpg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
