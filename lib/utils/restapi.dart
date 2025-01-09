@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings, non_constant_identifier_names
 
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class DataService {
   Future insertBuku(
@@ -1282,6 +1283,49 @@ class DataService {
     } catch (e) {
       // Print error here
       return '[]';
+    }
+  }
+
+  Future<String> upload(
+    String token,
+    String project,
+    List<int> file,
+    String ext,
+  ) async {
+    try {
+      String uri = 'https://io.etter.cloud/v4/upload';
+
+      var request = http.MultipartRequest('POST', Uri.parse(uri));
+
+      request.fields['token'] = token;
+      request.fields['project'] = project;
+
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        file,
+        filename: 'filename.$ext',
+      ));
+
+      var response = await request.send();
+
+      if (kDebugMode) {
+        print(response);
+      }
+
+      if (response.statusCode == 200) {
+        final res = await http.Response.fromStream(response);
+
+        if (kDebugMode) {
+          print(res.body);
+        }
+
+        return res
+            .body; // Return the response body if the upload is successful.
+      } else {
+        return 'Upload failed with status code: ${response.statusCode}'; // Provide a message for failed uploads.
+      }
+    } catch (e) {
+      return 'An error occurred: $e'; // Provide an error message in case of exceptions.
     }
   }
 }

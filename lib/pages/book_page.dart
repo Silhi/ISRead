@@ -324,7 +324,7 @@ class _BookViewState extends State<BookView> {
                                   alignment: Alignment.topCenter,
                                   heightFactor: 1.0,
                                   child: Image.asset(
-                                    "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                    "assets/sampul/${bukuItem.kategori_buku}.jpeg",
                                     fit: BoxFit.fill,
                                     height: 136,
                                     width: 90,
