@@ -4,9 +4,10 @@ import 'package:isread/pages/book_page.dart';
 import 'package:isread/pages/home_page.dart';
 import 'package:isread/pages/login_page.dart';
 
-import 'package:isread/pages/welcome_screen.dart';
+import 'package:isread/pages/welcome_page.dart';
 import 'package:isread/pages/register_page.dart';
 import 'package:isread/pages/splash_screen.dart';
+import 'package:isread/pages/profile_page.dart';
 
 import 'package:isread/admin_dashboard/book_dashboard.dart';
 
