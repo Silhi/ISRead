@@ -29,6 +29,11 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.blue),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: SingleChildScrollView(
         child: Container(
@@ -69,7 +74,13 @@ class _RegisterPageState extends State<RegisterPage> {
                       validator: (value) => Validator.validateName(name: value),
                       decoration: const InputDecoration(
                         labelText: "Name",
+                        labelStyle: TextStyle(
+                          color: Colors.grey, // Warna label teks abu-abu
+                        ),
                         hintText: "Enter your full name",
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                        ),
                         border: OutlineInputBorder(),
                         enabledBorder: OutlineInputBorder(
                           borderSide:
@@ -93,12 +104,17 @@ class _RegisterPageState extends State<RegisterPage> {
                           value!.isEmpty ? 'Please enter your NRP' : null,
                       decoration: const InputDecoration(
                         labelText: "NRP",
+                        labelStyle: TextStyle(
+                          color: Colors.grey, // Warna label teks abu-abu
+                        ),
                         hintText: "Enter your NRP",
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                        ),
                         border: OutlineInputBorder(),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Color.fromARGB(172, 177, 176, 176),
-                              width: 1.0),
+                          borderSide:
+                              BorderSide(color: Colors.grey, width: 1.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide:
@@ -117,7 +133,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           Validator.validateEmail(email: value),
                       decoration: const InputDecoration(
                         labelText: "Email",
+                        labelStyle: TextStyle(
+                          color: Colors.grey, // Warna label teks abu-abu
+                        ),
                         hintText: "Enter your email address",
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                        ),
                         border: OutlineInputBorder(),
                         enabledBorder: OutlineInputBorder(
                           borderSide:
@@ -141,7 +163,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           Validator.validatePhoneNumber(value!),
                       decoration: const InputDecoration(
                         labelText: "Phone Number",
+                        labelStyle: TextStyle(
+                          color: Colors.grey, // Warna label teks abu-abu
+                        ),
                         hintText: "Enter your phone number",
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                        ),
                         border: OutlineInputBorder(),
                         enabledBorder: OutlineInputBorder(
                           borderSide:
@@ -165,7 +193,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           Validator.validatePassword(password: value),
                       decoration: const InputDecoration(
                         labelText: "Password",
+                        labelStyle: TextStyle(
+                          color: Colors.grey, // Warna label teks abu-abu
+                        ),
                         hintText: "Enter a strong password",
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                        ),
                         border: OutlineInputBorder(),
                         enabledBorder: OutlineInputBorder(
                           borderSide:
@@ -214,17 +248,30 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     const SizedBox(height: 16.0),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, 'login_page');
-                      },
-                      child: const Text(
-                        'Already have an account? Log In',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Already have an account? ",
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey.shade600,
+                          ),
                         ),
-                      ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, 'login_page');
+                          },
+                          child: Text(
+                            'Login',
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
