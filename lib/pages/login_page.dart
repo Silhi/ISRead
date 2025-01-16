@@ -50,9 +50,6 @@ class _LoginPageState extends State<LoginPage> {
         },
       );
 
-      debugPrint('Status Code: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final List<dynamic> responseData = jsonDecode(response.body);
 

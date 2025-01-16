@@ -323,10 +323,9 @@ class _BookViewState extends State<BookView> {
                                 child: Align(
                                   alignment: Alignment.topCenter,
                                   heightFactor: 1.0,
-                                  child: bukuItem?.kategori_buku == 'Umum'
+                                  child: bukuItem.kategori_buku == 'Umum'
                                       ? Image.network(
-                                          fileUri +
-                                              (bukuItem?.sampul_buku ?? ""),
+                                          fileUri + (bukuItem.sampul_buku),
                                           fit: BoxFit.fill,
                                           height: 136,
                                           width: 90,
@@ -346,7 +345,7 @@ class _BookViewState extends State<BookView> {
                                           },
                                         )
                                       : Image.asset(
-                                          "assets/sampul/${bukuItem?.kategori_buku}.jpeg",
+                                          "assets/sampul/${bukuItem.kategori_buku}.jpeg",
                                           fit: BoxFit.fill,
                                           height: 136,
                                           width: 90,
