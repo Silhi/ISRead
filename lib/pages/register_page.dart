@@ -129,8 +129,23 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _emailTextController,
-                      validator: (value) =>
-                          Validator.validateEmail(email: value),
+                      validator: (value) {
+                        // Existing validation
+                        String? emailValidation =
+                            Validator.validateEmail(email: value);
+
+                        // New domain validation
+                        if (emailValidation != null) {
+                          return emailValidation;
+                        }
+
+                        if (!RegExp(r"^[a-zA-Z0-9._%+-]+@mhs\.itenas\.ac\.id$")
+                            .hasMatch(value ?? '')) {
+                          return 'Email harus domain @mhs.itenas.ac.id';
+                        }
+
+                        return null;
+                      },
                       decoration: const InputDecoration(
                         labelText: "Email",
                         labelStyle: TextStyle(
