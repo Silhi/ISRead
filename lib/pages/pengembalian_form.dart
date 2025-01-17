@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:isread/models/book_model.dart';
 import 'package:isread/models/user_model.dart';
 import 'package:isread/models/loan_model.dart';
-import 'package:isread/models/return_model.dart';
 import 'package:isread/pages/profile_page.dart';
 
 class PengembalianPage extends StatefulWidget {
@@ -88,59 +88,53 @@ class _PengembalianPageState extends State<PengembalianPage> {
   }
 
   Future<void> _handlePengembalian() async {
-    // if (_imagePath == null) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //       content: Text("Harap ambil foto bukti pengembalian terlebih dahulu."),
-    //     ),
-    //   );
-    //   return;
-    // }
-
-    // try {
-
-    String? buktiFoto;
-    if (_imagePath != null) {
-      buktiFoto = base64Encode(File(_imagePath!).readAsBytesSync());
-    } else {
-      buktiFoto = null; // Atur buktiFoto menjadi null jika tidak ada foto
+    // Validasi apakah buktiFoto sudah diunggah
+    if (_imagePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Harap unggah foto bukti pengembalian terlebih dahulu.",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
+      return; // Menghentikan eksekusi jika belum ada foto
     }
 
-    String tglDikembalikan = DateFormat('dd-MM-yyyy').format(
-        tanggalKembali!); // Ambil tanggal dikembalikan dalam format string
+    try {
+      String buktiFoto = base64Encode(File(_imagePath!).readAsBytesSync());
+      String tglDikembalikan = DateFormat('dd-MM-yyyy').format(tanggalKembali!);
 
-    await ds.insertPengembalian(
-      appid, // Gunakan appid yang relevan
-      widget.peminjamanId,
-      tglDikembalikan,
-      buktiFoto ?? "",
-    );
+      await ds.insertPengembalian(
+        appid,
+        widget.peminjamanId,
+        tglDikembalikan,
+        buktiFoto,
+      );
 
-    print("Pengembalian berhasil disimpan.");
+      await updateBookStatus(widget.bookId);
+      await updateLoanStatus(widget.peminjamanId);
 
-    await updateBookStatus(widget.bookId);
-    print("Status buku diperbarui.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Pengembalian berhasil!",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
 
-    await updateLoanStatus(widget.peminjamanId);
-    print("Status peminjaman diperbarui.");
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Pengembalian berhasil!"),
-      ),
-    );
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => ProfilePage()),
-    );
-    // } catch (e) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(
-    //       content: Text("Terjadi kesalahan: $e"),
-    //     ),
-    //   );
-    // }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ProfilePage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Terjadi kesalahan: $e"),
+        ),
+      );
+    }
   }
 
   Future<void> updateBookStatus(String whereValue) async {
@@ -176,6 +170,7 @@ class _PengembalianPageState extends State<PengembalianPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Header
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -192,31 +187,55 @@ class _PengembalianPageState extends State<PengembalianPage> {
                   ],
                 ),
                 SizedBox(height: 20),
-                Container(
-                  width: 150,
-                  height: 200,
-                  color: Colors.grey[300],
-                  child: Image.asset(
-                    "assets/sampul/${buku!.kategori_buku ?? 'default'}.jpeg",
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    errorBuilder: (BuildContext context, Object error,
-                        StackTrace? stackTrace) {
-                      return Container(
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: Icon(
-                            Icons.my_library_books_rounded,
-                            size: 50,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      );
-                    },
+                // Cover Image
+                if (buku == null)
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      width: 150,
+                      height: 200,
+                      color: Colors.grey,
+                    ),
+                  )
+                else
+                  Container(
+                    width: 150,
+                    height: 200,
+                    child: Image.asset(
+                      "assets/sampul/${buku!.kategori_buku}.jpeg",
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                ),
                 SizedBox(height: 10),
-                if (buku != null) ...[
+                // Book Details
+                if (buku == null)
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 200,
+                          height: 20,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 5),
+                        Container(
+                          width: 150,
+                          height: 15,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 5),
+                        Container(
+                          width: 100,
+                          height: 15,
+                          color: Colors.grey,
+                        ),
+                      ],
+                    ),
+                  )
+                else ...[
                   Text(
                     buku!.judul_buku,
                     textAlign: TextAlign.center,
@@ -234,6 +253,7 @@ class _PengembalianPageState extends State<PengembalianPage> {
                   ),
                 ],
                 SizedBox(height: 20),
+                // Date Section
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -253,14 +273,26 @@ class _PengembalianPageState extends State<PengembalianPage> {
                     children: [
                       Icon(Icons.calendar_today, size: 22),
                       SizedBox(width: 10),
-                      Text(
-                        DateFormat('d MMMM yyyy').format(tanggalKembali!),
-                        style: TextStyle(fontSize: 14, color: Colors.black),
-                      ),
+                      if (tanggalKembali == null)
+                        Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(
+                            width: 100,
+                            height: 20,
+                            color: Colors.grey,
+                          ),
+                        )
+                      else
+                        Text(
+                          DateFormat('d MMMM yyyy').format(tanggalKembali!),
+                          style: TextStyle(fontSize: 14, color: Colors.black),
+                        ),
                     ],
                   ),
                 ),
                 SizedBox(height: 20),
+                // Photo Section
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -269,44 +301,36 @@ class _PengembalianPageState extends State<PengembalianPage> {
                   ),
                 ),
                 SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  height: 150,
-                  color: Colors.grey[300],
-                  child: GestureDetector(
-                    onTap: _openCamera,
-                    child: Container(
-                      width: double.infinity,
-                      height: 150,
-                      color: Colors.grey[300],
-                      child: _imagePath == null
-                          ? const Icon(Icons.camera_alt, size: 50)
-                          : Image.file(File(_imagePath!)),
-                    ),
+                GestureDetector(
+                  onTap: _openCamera,
+                  child: Container(
+                    width: double.infinity,
+                    height: 150,
+                    color: Colors.grey[300],
+                    child: _imagePath == null
+                        ? const Icon(Icons.camera_alt, size: 50)
+                        : Image.file(File(_imagePath!)),
                   ),
                 ),
                 SizedBox(height: 20),
+                // Button
                 ElevatedButton(
                   onPressed: _handlePengembalian,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 48,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 15),
                   ),
-                  child: Center(
-                    child: Text(
-                      'Unggah',
-                      style: TextStyle(fontSize: 18, color: Colors.black),
-                    ),
+                  child: const Text(
+                    'Unggah',
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
-                if (_imagePath != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20.0),
-                    child: Image.file(File(_imagePath!)),
-                  ),
               ],
             ),
           ),
