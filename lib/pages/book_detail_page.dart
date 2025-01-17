@@ -26,11 +26,16 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   BukuModel? buku;
   List data = [];
   int? total;
+  String? borrowerEmail;
 
   Future<void> selectIdBuku() async {
     data = jsonDecode(
         await ds.selectId(token, project, 'buku', appid, widget.bookId));
     buku = BukuModel.fromJson(data[0]);
+
+    if (buku?.status == "Tidak Tersedia") {
+      borrowerEmail = await findBorrowerEmail(widget.bookId);
+    }
 
     setState(() {});
   }
@@ -48,6 +53,57 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       return peminjamanList.length;
     } else {
       return 0;
+    }
+  }
+
+  Future<String?> findBorrowerEmail(String idBuku) async {
+    try {
+      // Ambil data peminjaman berdasarkan id_buku dan status "Berlangsung"
+      String response = await ds.selectWhere(
+          token, project, 'peminjaman', appid, 'id_buku', idBuku);
+
+      List<dynamic> peminjamanList = jsonDecode(response);
+
+      // Filter data untuk mendapatkan peminjaman yang sedang berlangsung
+      var ongoingLoan = peminjamanList.firstWhere(
+          (item) =>
+              item['status'] == 'Berlangsung' || item['status'] == 'Terlambat',
+          orElse: () => null);
+
+      if (ongoingLoan != null) {
+        // Ambil id_user dari data yang ditemukan
+        String idUser = ongoingLoan['id_user'];
+
+        // Cari email pengguna berdasarkan id_user
+        String? email = await findUserEmail(idUser);
+        return email;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error: $e");
+      return null;
+    }
+  }
+
+  Future<String?> findUserEmail(String idUser) async {
+    try {
+      // Ambil data pengguna berdasarkan id_user
+      String response =
+          await ds.selectId(token, project, 'user', appid, idUser);
+
+      List<dynamic> userList = jsonDecode(response);
+
+      if (userList.isNotEmpty) {
+        // Ambil email dari data pengguna yang ditemukan
+        String email = userList.first['email'];
+        return email;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error: $e");
+      return null;
     }
   }
 
@@ -107,82 +163,92 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           : buku?.status == "Tidak Tersedia"
               ? Container(
                   margin: const EdgeInsets.all(25),
-                  child: const Text(
-                    "Buku sedang dipinjam",
+                  child: Text(
+                    "Buku sedang dipinjam oleh ${borrowerEmail ?? 'Error memuat data'}",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14, color: Colors.red),
                   ),
                 )
-              : Container(
-                  margin:
-                      const EdgeInsets.only(left: 25, right: 25, bottom: 25),
-                  height: 49,
-                  child: TextButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                          Theme.of(context).colorScheme.surface),
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+              : buku?.kategori_buku == "Tugas Akhir"
+                  ? Container(
+                      margin: const EdgeInsets.all(25),
+                      child: const Text(
+                        "Dokumen Tugas Akhir tidak dapat dipinjam",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: Colors.black),
                       ),
-                    ),
-                    onPressed: () async {
-                      if (currentUser != null) {
-                        int borrowedCount =
-                            await findBorrowedBook(currentUser!.id);
-                        if (borrowedCount == 1) {
-                          // Tampilkan dialog pesan jika sudah meminjam 1 buku
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
-                                title: const Text('Peringatan',
-                                    style: TextStyle(color: Colors.black)),
-                                content: const Text(
-                                  'Anda hanya dapat meminjam 1 buku.',
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                actions: <Widget>[
-                                  TextButton(
-                                    child: const Text(
-                                      'Tutup',
+                    )
+                  : Container(
+                      margin: const EdgeInsets.only(
+                          left: 25, right: 25, bottom: 25),
+                      height: 49,
+                      child: TextButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(
+                              Theme.of(context).colorScheme.surface),
+                          shape: MaterialStateProperty.all(
+                            RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                        onPressed: () async {
+                          if (currentUser != null) {
+                            int borrowedCount =
+                                await findBorrowedBook(currentUser!.id);
+                            if (borrowedCount == 1) {
+                              // Tampilkan dialog pesan jika sudah meminjam 1 buku
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    title: const Text('Peringatan',
+                                        style: TextStyle(color: Colors.black)),
+                                    content: const Text(
+                                      'Anda hanya dapat meminjam 1 buku.',
                                       style: TextStyle(color: Colors.black),
                                     ),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ],
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: const Text(
+                                          'Tutup',
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
                               );
-                            },
-                          );
-                        } else {
-                          // Arahkan ke halaman PeminjamanPage jika belum meminjam buku
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PeminjamanPage(
-                                bookId: buku?.id ?? "Null",
-                                userData: widget.userData,
-                              ),
-                            ),
-                          );
-                        }
-                      }
-                    },
-                    child: const Text(
-                      'Pinjam Buku',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                            } else {
+                              // Arahkan ke halaman PeminjamanPage jika belum meminjam buku
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PeminjamanPage(
+                                    bookId: buku?.id ?? "Null",
+                                    userData: widget.userData,
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: const Text(
+                          'Pinjam Buku',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
       body: SafeArea(
+        top: false,
         child: CustomScrollView(
           slivers: <Widget>[
             SliverAppBar(
@@ -192,9 +258,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               flexibleSpace: FlexibleSpaceBar(
                 background: Stack(
                   children: <Widget>[
+                    Container(
+                      width: double.infinity,
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      color: const Color(0xFFF3F3E0), // Warna latar belakang
+                    ),
                     Positioned(
                       left: 25,
-                      top: 20,
+                      top: MediaQuery.of(context).padding.top + 20,
                       child: GestureDetector(
                         onTap: () {
                           Navigator.pop(context);
@@ -217,8 +288,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                       alignment: Alignment.bottomCenter,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 62),
-                        width: 172,
-                        height: 225,
+                        width: MediaQuery.of(context).size.width * 0.45,
+                        height: MediaQuery.of(context).size.height * 0.35,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           color: buku?.sampul_buku == "-" ||
@@ -316,33 +387,28 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                               alignment: Alignment
                                   .center, // Menyusun item agar terpusat
                               child: GridView.builder(
+                                padding: EdgeInsets.zero,
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
                                 gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: MediaQuery.of(context)
-                                              .size
-                                              .width >
-                                          600
-                                      ? 3
-                                      : MediaQuery.of(context).size.width > 400
-                                          ? 2
-                                          : 1,
+                                    SliverGridDelegateWithMaxCrossAxisExtent(
+                                  maxCrossAxisExtent:
+                                      200, // Atur lebar maksimum item grid
                                   mainAxisSpacing: 8,
                                   crossAxisSpacing: 8,
-                                  childAspectRatio: 3,
+                                  childAspectRatio:
+                                      3, // Sesuaikan rasio agar lebih proporsional
                                 ),
                                 itemCount: isExpanded
                                     ? (buku?.dosen_pembimbing.contains(";") ??
                                             false
                                         ? 5
-                                        : 4) // 4 informasi + 1 dosen tambahan jika ada
+                                        : 4)
                                     : 3,
                                 itemBuilder: (context, index) {
                                   String label;
                                   String value;
 
-                                  // Menyesuaikan dengan field yang ada
                                   switch (index) {
                                     case 0:
                                       label = "Penerbit";
@@ -365,7 +431,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                               ['Lorem Ipsum'];
                                       value = dosenPembimbing[0].trim();
                                       break;
-                                    case 4: // Menangani dosen pembimbing kedua
+                                    case 4:
                                       if (buku?.dosen_pembimbing
                                               .contains(";") ??
                                           false) {
