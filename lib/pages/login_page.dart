@@ -116,17 +116,18 @@ class _LoginPageState extends State<LoginPage> {
         prefs.setString('userData', jsonEncode(userMap));
 
         if (role == 'admin') {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => BookDashboard(),
             ),
+            (Route<dynamic> route) => false, // Remove all previous routes
           );
         } else if (role == 'mahasiswa') {
-          // Send userData to the HomeView screen
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => HomeView(onCategorySelected: (category) {}),
             ),
+            (Route<dynamic> route) => false, // Remove all previous routes
           );
         } else {
           _showSnackBar('Role tidak dikenali: $role');

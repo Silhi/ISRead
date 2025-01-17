@@ -71,11 +71,6 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Container(
                   padding: const EdgeInsets.all(
                       0), // Removed padding to fit the logo naturally
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(
-                        0.2), // Soft background opacity for blending
-                    borderRadius: BorderRadius.circular(0), // No border
-                  ),
                   child: Image.asset(
                     'assets/screen/isreadlogo.png',
                     width: 150, // Adjust logo size to make it more fitting

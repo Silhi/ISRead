@@ -17,6 +17,13 @@ import 'package:isread/pages/scan_page.dart';
 
 import 'package:isread/admin_dashboard/form_add_book.dart';
 import 'package:isread/admin_dashboard/form_edit_book.dart';
+import 'package:isread/admin_dashboard/user_dashboard.dart';
+import 'package:isread/admin_dashboard/borrow_dashboard.dart';
+import 'package:isread/admin_dashboard/history.dart';
+import 'package:isread/admin_dashboard/form_edit_user.dart';
+import 'package:isread/admin_dashboard/return_dashboard.dart';
+
+import 'package:isread/models/book_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,10 +57,17 @@ class MyApp extends StatelessWidget {
         'login_page': (context) => LoginPage(),
         'scan_page': (context) => ScanView(),
         'add_book_page': (context) => AddBookPage(),
-        'edit_book_page': (context) => EditBookPage(),
+        'edit_book_page': (context) => EditBookPage(
+              book: ModalRoute.of(context)!.settings.arguments as BukuModel,
+            ),
         'profile_page': (context) => ProfilePage(),
         'register_page': (context) => RegisterPage(),
         'splash_screen': (context) => SplashScreen(),
+        'manage_user': (context) => UserDashboard(),
+        'manage_borrow': (context) => BorrowDashboard(),
+        'history': (context) => HistoryDashboard(),
+        'edit_user_page': (context) => EditUserPage(),
+        'manage_return': (context) => ReturnDashboard(),
       },
     );
   }
