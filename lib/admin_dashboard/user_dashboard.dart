@@ -1,31 +1,25 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-
 import 'package:isread/models/book_model.dart';
 import 'package:isread/models/return_model.dart';
 import 'package:isread/models/loan_model.dart';
 import 'package:isread/models/user_model.dart';
-
 import 'package:isread/utils/restapi.dart';
 import 'package:isread/utils/config.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-import 'package:barcode/barcode.dart';
 
-import 'package:isread/admin_dashboard/book_details.dart';
-
-class BookDashboard extends StatefulWidget {
-  const BookDashboard({Key? key}) : super(key: key);
+class UserDashboard extends StatefulWidget {
+  const UserDashboard({Key? key}) : super(key: key);
 
   @override
-  BookDashboardState createState() => BookDashboardState();
+  UserDashboardState createState() => UserDashboardState();
 }
 
-class BookDashboardState extends State<BookDashboard> {
+class UserDashboardState extends State<UserDashboard> {
   final DataService ds = DataService();
   List<BukuModel> buku = [];
   List<BukuModel> filteredBuku = [];
+  List<UserModel> filteredUsers = [];
   List<UserModel> users = [];
   List<PeminjamanModel> pinjam = [];
   List<PengembalianModel> kembali = [];
@@ -39,7 +33,7 @@ class BookDashboardState extends State<BookDashboard> {
   String searchQuery = '';
   String filterCategory = '';
 
-  bool _isLoading = false;
+  bool _isFabVisible = true;
 
   @override
   void initState() {
@@ -49,13 +43,12 @@ class BookDashboardState extends State<BookDashboard> {
 
   Future<void> fetchData() async {
     try {
-      // Fetch Buku data
+      // Fetch data concurrently
       final rawDataBuku = await ds.selectAll(token, project, 'buku', appid);
       final dataBuku = jsonDecode(rawDataBuku) as List;
       final List<BukuModel> bukuData =
           dataBuku.map((e) => BukuModel.fromJson(e)).toList();
 
-      // Fetch User data
       final rawDataUsers = await ds.selectAll(token, project, 'user', appid);
       final dataUsers = jsonDecode(rawDataUsers) as List;
       final List<UserModel> usersData =
@@ -75,270 +68,49 @@ class BookDashboardState extends State<BookDashboard> {
 
       setState(() {
         buku = bukuData;
-        totalBooks = bukuData.length;
         users = usersData;
-        totalUsers = usersData.length;
         pinjam = pinjamData;
-        totalPinjam = pinjamData.length;
         kembali = kembalisData;
+        filteredUsers = usersData;
+
+        totalBooks = bukuData.length;
+        totalUsers = usersData.length;
+        totalPinjam = pinjamData.length;
         totalKembali = kembalisData.length;
 
         filteredBuku = buku;
+        filteredPinjam = pinjam;
       });
     } catch (e) {
       print("Error fetching data: $e");
     }
   }
 
-  Future<List<BukuModel>> selectAllBuku() async {
-    final String jsonResponse =
-        await ds.selectAll(token, project, 'buku', appid);
-    final List data = jsonDecode(jsonResponse);
-    return data.map((e) => BukuModel.fromJson(e)).toList();
-  }
-
-  Future<void> exportDataToPDF() async {
-    setState(() {
-      _isLoading = true; // Tampilkan indikator loading
-    });
-
-    try {
-      final List<BukuModel> allBuku = await selectAllBuku();
-
-      if (allBuku.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No books found in the database.')),
-        );
-        return;
-      }
-
-      final pdf = pw.Document();
-      final font = await PdfGoogleFonts.notoSansRegular();
-
-      pdf.addPage(
-        pw.Page(
-          build: (pw.Context context) {
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(
-                  'Barcode Buku',
-                  style: pw.TextStyle(fontSize: 24, font: font),
-                ),
-                pw.SizedBox(height: 16),
-                pw.Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: allBuku.map((buku) {
-                    final barcode = Barcode.code128();
-                    final barcodeSvg = barcode.toSvg(
-                      buku.id,
-                      width: 200,
-                      height: 80,
-                      fontHeight: 0,
-                    );
-
-                    return pw.Column(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Container(
-                          width: 200,
-                          height: 80,
-                          child: pw.SvgImage(
-                              svg: barcodeSvg), // Menampilkan barcode
-                        ),
-                        pw.SizedBox(height: 4),
-                        pw.Text(
-                          buku.kode_buku,
-                          style: pw.TextStyle(fontSize: 12, font: font),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ],
-            );
-          },
-        ),
-      );
-
-      final pdfBytes = await pdf.save();
-      await Printing.sharePdf(
-        bytes: pdfBytes,
-        filename: 'Barcode Buku IS.pdf',
-      );
-    } catch (e) {
-      print("Error exporting PDF: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to export barcodes to PDF.')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false; // Sembunyikan indikator loading
-      });
-    }
-  }
-
-  Future<void> selectAllBukuAndUpdateState() async {
-    try {
-      final allBuku = await selectAllBuku();
-      setState(() {
-        buku = allBuku;
-      });
-    } catch (e) {
-      print("Error fetching books: $e");
-    }
-  }
-
-  Future<int> countBooksByCategory(String category) async {
-    final String jsonResponse = await ds.selectWhere(
-      token,
-      project,
-      'buku',
-      appid,
-      'kategori_buku',
-      category,
-    );
-
-    final List data = jsonDecode(jsonResponse);
-
-    int maxCode = 0;
-
-    for (var item in data) {
-      final String kodeBuku = item['kode_buku'];
-      if (kodeBuku.isNotEmpty) {
-        var parts = kodeBuku.split('-');
-        if (parts.length > 1) {
-          var urutan = int.tryParse(parts[1]);
-          if (urutan != null && urutan > maxCode) {
-            maxCode = urutan;
-          }
-        }
-      }
-    }
-
-    return maxCode;
-  }
-
-  Future<bool> updateBookCode(
-      String whereField, String whereValue, String newCode) async {
-    return await ds.updateId(
-        'kode_buku', newCode, token, project, 'buku', appid, whereValue);
-  }
-
-  Future<void> generateAutomaticCodes() async {
-    await Future.delayed(Duration(seconds: 1));
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final List<BukuModel> allBuku = await selectAllBuku();
-
-      if (allBuku.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No books found in the database.')),
-        );
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
-
-      for (var buku in allBuku) {
-        if (buku.kode_buku == "-") {
-          final String? kategori = buku.kategori_buku;
-          if (kategori == null || kategori.isEmpty) {
-            continue;
-          }
-
-          String? kodePrefix;
-          switch (kategori) {
-            case 'Tugas Akhir':
-              kodePrefix = 'TA';
-              break;
-            case 'Skripsi':
-              kodePrefix = 'SK';
-              break;
-            case 'Laporan Praktik Kerja':
-              kodePrefix = 'KP';
-              break;
-            case 'Laporan Akhir MBKM':
-              kodePrefix = 'MBKM';
-              break;
-            case 'Umum':
-              kodePrefix = 'BK';
-              break;
-            default:
-              continue;
-          }
-
-          int existingCount = await countBooksByCategory(kategori);
-          final String urutan = (existingCount + 1).toString().padLeft(3, '0');
-
-          final String penerbit = buku.penerbit;
-          if (penerbit.isEmpty || !penerbit.startsWith('16')) {
-            continue;
-          }
-
-          String newKode;
-
-          if (kategori == 'Umum') {
-            newKode = '$kodePrefix-$urutan';
-          } else {
-            final String penerbitCode =
-                penerbit.substring(2, 6) + '-' + penerbit.substring(6);
-            newKode = '$kodePrefix-$urutan-$penerbitCode';
-          }
-
-          final bool updated = await updateBookCode('_id', buku.id, newKode);
-
-          if (!updated) {
-            print("Failed to update book ID ${buku.id}.");
-          }
-        }
-      }
-    } catch (e) {
-      print("An error occurred during the automatic code generation: $e");
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Automatic code generation process completed. Check logs for details.')),
-      );
-    }
-  }
-
   void onSearch(String query) {
     setState(() {
       searchQuery = query;
-      filteredBuku = buku.where((item) {
-        final titleLower = item.judul_buku.toLowerCase();
+      filteredUsers = users.where((item) {
+        final usernameLower = item.username.toLowerCase();
         final queryLower = query.toLowerCase();
-        return titleLower.contains(queryLower);
+        return usernameLower.contains(queryLower);
       }).toList();
     });
   }
 
-  void onFilter(String? category) {
+  void onFilter(String? role) {
     setState(() {
-      filterCategory = category ?? '';
-      filteredBuku = buku.where((item) {
-        if (category == null || category.isEmpty) return true;
-        return item.kategori_buku.toLowerCase() == category.toLowerCase();
+      filterCategory = role ?? '';
+      filteredUsers = users.where((item) {
+        if (role == null || role.isEmpty)
+          return true; // Tampilkan semua jika tidak ada filter
+        return item.role.toLowerCase() == role.toLowerCase();
       }).toList();
     });
   }
-
-  bool _isFabVisible = true; // Status untuk visibilitas FAB
 
   void _toggleFab() {
     setState(() {
-      _isFabVisible = !_isFabVisible; // Toggle visibilitas FAB
+      _isFabVisible = !_isFabVisible;
     });
   }
 
@@ -348,7 +120,7 @@ class BookDashboardState extends State<BookDashboard> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Manage Books',
+          'Manage User',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.blue,
@@ -356,7 +128,7 @@ class BookDashboardState extends State<BookDashboard> {
       ),
       drawer: Drawer(
         child: Container(
-          color: Colors.white, // Ubah warna latar belakang drawer menjadi putih
+          color: Colors.white,
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
@@ -465,42 +237,8 @@ class BookDashboardState extends State<BookDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 statisticsGrid(pinjam),
-                triggerSection(),
                 filterAndSearchSection(),
                 dataTable(context),
-              ],
-            ),
-          ),
-          // Tombol panah untuk kontrol FAB
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    _isFabVisible
-                        ? Icons.keyboard_double_arrow_right
-                        : Icons.keyboard_double_arrow_left,
-                    color: Colors.blueAccent,
-                    size: 30, // Ukuran ikon lebih besar agar lebih mencolok
-                  ),
-                  onPressed: _toggleFab,
-                ),
-                if (_isFabVisible) // FAB hanya ditampilkan jika diperlukan
-                  FloatingActionButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, 'add_book_page')
-                          .then((result) {
-                        if (result == true) {
-                          fetchData();
-                        }
-                      });
-                    },
-                    backgroundColor: Colors.blue,
-                    child: const Icon(Icons.add, color: Colors.white),
-                  ),
               ],
             ),
           ),
@@ -526,7 +264,7 @@ class BookDashboardState extends State<BookDashboard> {
               fontSize: 20.0,
             ),
           ),
-          const SizedBox(height: 10.0),
+          SizedBox(height: 10.0),
           Text(
             "Sistem Informasi ITENAS",
             style: TextStyle(
@@ -568,28 +306,44 @@ class BookDashboardState extends State<BookDashboard> {
               Expanded(
                 child: TextField(
                   onChanged: onSearch,
-                  decoration: const InputDecoration(
-                    hintText: 'Search by book title...',
+                  cursorColor: Colors.blueAccent,
+                  decoration: InputDecoration(
+                    hintText: 'Search by Name...',
                     prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Colors.blue, width: 2.0), // Blue border
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Colors.blue,
+                          width: 2.0), // Blue border when focused
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: const Color.fromARGB(255, 209, 209, 209),
+                          width: 2.0), // Blue border when enabled
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               DropdownButton<String?>(
                 value: filterCategory.isEmpty ? null : filterCategory,
-                hint: Text("Filter by"),
-                icon: Icon(Icons.filter_list_alt),
+                hint: const Text("Filter by"),
+                icon: const Icon(Icons.filter_list_alt),
                 dropdownColor: Colors.white,
                 items: [
                   const DropdownMenuItem(value: '', child: Text('All')),
-                  ...buku
-                      .map((e) => e.kategori_buku)
+                  ...users
+                      .map((e) => e.role)
                       .toSet()
-                      .map((category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(category),
-                          ))
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
                       .toList(),
                 ],
                 onChanged: onFilter,
@@ -674,41 +428,6 @@ class BookDashboardState extends State<BookDashboard> {
     );
   }
 
-  Widget triggerSection() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          ElevatedButton.icon(
-            onPressed: () {
-              exportDataToPDF();
-            },
-            icon: const Icon(Icons.picture_as_pdf),
-            label: const Text("Export PDF"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red, // Warna tombol untuk Export PDF
-              foregroundColor: Colors.white, // Warna teks dan ikon
-            ),
-          ),
-          const SizedBox(width: 16),
-          ElevatedButton.icon(
-            onPressed: () async {
-              await generateAutomaticCodes();
-              fetchData();
-            },
-            icon: const Icon(Icons.qr_code_scanner),
-            label: const Text("Generate Code"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green, // Warna tombol untuk Scan Label
-              foregroundColor: Colors.white, // Warna teks dan ikon
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget dataTable(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -737,130 +456,84 @@ class BookDashboardState extends State<BookDashboard> {
                       horizontalMargin: 12.0,
                       dataRowHeight: 70.0,
                       headingRowHeight: 50.0,
-                      columns: const [
+                      columns: [
                         DataColumn(
-                          label: Text('Title',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
+                            label: const Text('Username',
+                                style: TextStyle(fontWeight: FontWeight.bold))),
                         DataColumn(
-                          label: Text('Category',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
+                            label: const Text('NRP',
+                                style: TextStyle(fontWeight: FontWeight.bold))),
                         DataColumn(
-                          label: Text('Author',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
+                            label: const Text('Email',
+                                style: TextStyle(fontWeight: FontWeight.bold))),
                         DataColumn(
-                          label: Text('Kode Buku',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
+                            label: const Text('No Telepon',
+                                style: TextStyle(fontWeight: FontWeight.bold))),
                         DataColumn(
-                          label: Text('Action',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
+                            label: const Text('Role',
+                                style: TextStyle(fontWeight: FontWeight.bold))),
+                        DataColumn(
+                            label: const Text('Action',
+                                style: TextStyle(fontWeight: FontWeight.bold))),
                       ],
-                      rows: filteredBuku.map((book) {
+                      rows: filteredUsers.map((user) {
                         return DataRow(
                           cells: [
-                            DataCell(
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          BookDetailPage(book: book),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: constraints.maxWidth * 0.60,
-                                  child: Text(
-                                    book.judul_buku,
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            DataCell(
-                              Container(
-                                width: constraints.maxWidth * 0.20,
-                                child: Text(
-                                  book.kategori_buku,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                            DataCell(
-                              Container(
-                                width: constraints.maxWidth * 0.20,
-                                child: Text(
-                                  book.pengarang,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                            DataCell(
-                              Container(
-                                width: constraints.maxWidth * 0.20,
-                                child: Text(
-                                  book.kode_buku,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
+                            DataCell(Text(user.username,
+                                maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            DataCell(Text(user.nrp,
+                                maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            DataCell(Text(user.email,
+                                maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            DataCell(Text(user.no_telpon,
+                                maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            DataCell(Text(user.role,
+                                maxLines: 1, overflow: TextOverflow.ellipsis)),
                             DataCell(
                               Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.edit,
-                                        color: Colors.blue),
+                                    icon: Icon(Icons.edit, color: Colors.blue),
                                     onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        'edit_book_page',
-                                        arguments:
-                                            book, // Ensure 'book' is a BukuModel instance
-                                      ).then((_) {
-                                        fetchData(); // Refresh data after returning
+                                      Navigator.of(context).pushNamed(
+                                          'edit_user_page',
+                                          arguments: {
+                                            'userId': user.id
+                                          }).then((result) {
+                                        if (result == true) {
+                                          fetchData();
+                                        }
                                       });
                                     },
                                   ),
-                                  // After deleting a book
                                   IconButton(
                                     icon: const Icon(Icons.delete,
                                         color: Colors.red),
                                     onPressed: () async {
-                                      // Tampilkan dialog konfirmasi
+                                      // Show confirmation dialog
                                       bool? shouldDelete =
                                           await showDialog<bool>(
                                         context: context,
                                         builder: (BuildContext context) {
                                           return AlertDialog(
-                                            backgroundColor: Colors.grey[
-                                                100], // Latar belakang elegan
+                                            backgroundColor: Colors.grey[100],
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(
-                                                      10), // Sudut membulat
+                                                  BorderRadius.circular(10),
                                             ),
                                             title: const Text(
                                               'Konfirmasi Hapus',
                                               style: TextStyle(
-                                                color: Colors
-                                                    .black87, // Warna teks judul
+                                                color: Colors.black87,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             content: const Text(
-                                              'Apakah Anda yakin ingin menghapus buku ini?',
+                                              'Apakah Anda yakin ingin menghapus pengguna ini?',
                                               style: TextStyle(
-                                                color: Colors
-                                                    .black54, // Warna teks konten
+                                                color: Colors.black54,
                                               ),
                                             ),
                                             actions: [
@@ -868,28 +541,26 @@ class BookDashboardState extends State<BookDashboard> {
                                                 child: const Text(
                                                   'Batal',
                                                   style: TextStyle(
-                                                    color: Colors
-                                                        .blueGrey, // Warna teks tombol batal
+                                                    color: Colors.blueGrey,
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
                                                 onPressed: () {
-                                                  Navigator.of(context).pop(
-                                                      false); // Menutup dialog dan batal hapus
+                                                  Navigator.of(context)
+                                                      .pop(false);
                                                 },
                                               ),
                                               TextButton(
                                                 child: const Text(
                                                   'Hapus',
                                                   style: TextStyle(
-                                                    color: Colors
-                                                        .redAccent, // Warna teks tombol hapus
+                                                    color: Colors.redAccent,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
                                                 onPressed: () {
-                                                  Navigator.of(context).pop(
-                                                      true); // Menutup dialog dan lanjut hapus
+                                                  Navigator.of(context)
+                                                      .pop(true);
                                                 },
                                               ),
                                             ],
@@ -897,36 +568,36 @@ class BookDashboardState extends State<BookDashboard> {
                                         },
                                       );
 
-                                      // Jika pengguna memilih untuk menghapus
+                                      // If the user confirms deletion
                                       if (shouldDelete == true) {
                                         bool response = await ds.removeId(
                                           token,
                                           project,
-                                          'buku',
+                                          'user', // Ensure this matches the correct entity
                                           appid,
-                                          book.id,
+                                          user.id, // Use the correct user ID
                                         );
 
                                         if (response) {
                                           setState(() {
-                                            filteredBuku.removeWhere(
-                                                (item) => item.id == book.id);
-                                            buku.removeWhere(
-                                                (item) => item.id == book.id);
-                                            totalBooks = buku.length;
+                                            // Remove the user from the list and update totals
+                                            users.removeWhere(
+                                                (item) => item.id == user.id);
+                                            totalUsers = users
+                                                .length; // Update the total count
                                           });
 
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(SnackBar(
-                                            content:
-                                                Text('Buku berhasil dihapus!'),
+                                            content: Text(
+                                                'Pengguna berhasil dihapus!'),
                                             backgroundColor: Colors.green,
                                           ));
                                         } else {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(SnackBar(
                                             content: Text(
-                                                'Gagal menghapus buku dari database.'),
+                                                'Gagal menghapus pengguna dari database.'),
                                             backgroundColor: Colors.red,
                                           ));
                                         }
