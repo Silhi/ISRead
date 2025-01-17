@@ -53,8 +53,27 @@ class _ScanViewState extends State<ScanView> {
       buku = data.map((e) => BukuModel.fromJson(e)).toList();
     } catch (e) {
       print("Error loading books: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load books.')),
+      // Show the popup dialog instead of SnackBar
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('Failed to load books.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Kembali'),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10), // Rounded corners
+          ),
+          titleTextStyle: const TextStyle(color: Colors.red), // Title color
+          contentTextStyle:
+              const TextStyle(color: Colors.black), // Content color
+        ),
       );
     }
   }
@@ -89,17 +108,41 @@ class _ScanViewState extends State<ScanView> {
                 'Buku dengan barcode ini tidak ditemukan di database.'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+                onPressed: () => Navigator.pop(context), // Close the dialog
+                child: const Text('Kembali'),
               ),
             ],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10), // Rounded corners
+            ),
+            titleTextStyle: const TextStyle(color: Colors.red), // Title color
+            contentTextStyle:
+                const TextStyle(color: Colors.black), // Content color
           ),
         );
       }
     } catch (e) {
       print("Error handling barcode: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error occurred while scanning.')),
+
+      // Show the error as a popup dialog instead of SnackBar
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('Error occurred while scanning.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Close the dialog
+              child: const Text('Kembali'),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10), // Rounded corners
+          ),
+          titleTextStyle: const TextStyle(color: Colors.red), // Title color
+          contentTextStyle:
+              const TextStyle(color: Colors.black), // Content color
+        ),
       );
     } finally {
       setState(() {
@@ -115,9 +158,10 @@ class _ScanViewState extends State<ScanView> {
       appBar: AppBar(
         title: const Text(
           'Scan Barcode',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.white,
+        centerTitle: true,
+        backgroundColor: const Color(0xff112D4E),
       ),
       body: currentUser == null
           ? Center(
@@ -147,24 +191,25 @@ class _ScanViewState extends State<ScanView> {
           : Stack(
               children: [
                 Center(
-                  child: ClipRect(
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Container(
-                        width: 300,
-                        height: 100,
-                        child: MobileScanner(
-                          controller: _controller,
-                          onDetect: (BarcodeCapture capture) {
-                            final List<Barcode> barcodes = capture.barcodes;
-                            for (final barcode in barcodes) {
-                              if (barcode.rawValue != null) {
-                                _handleBarcode(barcode.rawValue!);
-                                break;
-                              }
+                  child: Container(
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.only(bottom: 70),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: MobileScanner(
+                        controller: _controller,
+                        onDetect: (BarcodeCapture capture) {
+                          final List<Barcode> barcodes = capture.barcodes;
+                          for (final barcode in barcodes) {
+                            if (barcode.rawValue != null) {
+                              _handleBarcode(barcode.rawValue!);
+                              break;
                             }
-                          },
-                        ),
+                          }
+                        },
                       ),
                     ),
                   ),

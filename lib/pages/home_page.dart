@@ -112,12 +112,11 @@ class _HomeViewState extends State<HomeView> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Row(
                           children: [
                             SizedBox(
-                              height: media.width * 0.34,
+                              height: media.width * 0.35,
                             ),
                             Expanded(
                               child: TextField(
@@ -187,8 +186,8 @@ class _HomeViewState extends State<HomeView> {
                                     radius: 30,
                                     backgroundColor: Colors.blue[100],
                                     child: ClipOval(
-                                      child: Image.asset(
-                                        "/avatar/dummy.jpg",
+                                      child: Image.network(
+                                        fileUri + currentUser!.profpic,
                                         width: 60,
                                         height: 60,
                                         fit: BoxFit.cover,
