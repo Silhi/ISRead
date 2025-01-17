@@ -132,36 +132,6 @@ class UserDashboardState extends State<UserDashboard> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              Container(
-                color: Colors.blue, // Warna latar belakang header drawer
-                padding: EdgeInsets.only(left: 16.0, top: 20.0, bottom: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.white,
-                      backgroundImage: AssetImage('assets/avatar/dummy.jpg'),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Admin Name',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      'admin@example.com',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               ListTile(
                 leading: Icon(Icons.dashboard, color: Colors.blue),
                 title: Text('Dashboard'),

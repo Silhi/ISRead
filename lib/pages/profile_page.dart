@@ -65,12 +65,11 @@ class _ProfilePageState extends State<ProfilePage> {
           .toList();
 
       for (var peminjamanItem in peminjaman) {
-        final DateTime tanggalPinjam =
-            DateTime.parse(peminjamanItem.tgl_pinjam);
-        final DateTime batasPengembalian = tanggalPinjam.add(Duration(days: 7));
+        final DateTime tanggalKembali =
+            DateTime.parse(peminjamanItem.tgl_kembali);
         final DateTime sekarang = DateTime.now();
-        final int terlambat = sekarang.isAfter(batasPengembalian)
-            ? sekarang.difference(batasPengembalian).inDays
+        final int terlambat = sekarang.isAfter(tanggalKembali)
+            ? sekarang.difference(tanggalKembali).inDays
             : 0;
 
         final int denda = terlambat * 500;
@@ -300,15 +299,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                 itemCount: peminjaman.length,
                                 itemBuilder: (context, index) {
                                   var peminjamanItem = peminjaman[index];
-                                  var tanggalPinjam =
-                                      DateTime.parse(peminjamanItem.tgl_pinjam);
-                                  var batasPengembalian =
-                                      tanggalPinjam.add(Duration(days: 7));
                                   var sekarang = DateTime.now();
+                                  var tanggalKembali = DateTime.parse(
+                                      peminjamanItem.tgl_kembali);
                                   var terlambat =
-                                      sekarang.isAfter(batasPengembalian)
+                                      sekarang.isAfter(tanggalKembali)
                                           ? sekarang
-                                              .difference(batasPengembalian)
+                                              .difference(tanggalKembali)
                                               .inDays
                                           : 0;
                                   var statusSelesai =
@@ -332,7 +329,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                               fontWeight: FontWeight.bold),
                                         ),
                                         Text(
-                                          'Tanggal Kembali: ${DateFormat('d MMMM yyyy').format(batasPengembalian)}',
+                                          'Tanggal Kembali: ${DateFormat('d MMMM yyyy').format(tanggalKembali)}',
                                           style: TextStyle(
                                               color: Colors.black,
                                               fontSize: 12),

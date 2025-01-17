@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "847008847185",
+    "project_id": "isread-app",
+    "storage_bucket": "isread-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:847008847185:android:e0660617a58e97f2c32f70",
+        "android_client_info": {
+          "package_name": "com.isread.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVGlarkHaH2BVrqDAEHSyJ7pt8IeuES5E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
