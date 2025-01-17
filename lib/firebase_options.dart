@@ -21,25 +21,13 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -61,4 +49,41 @@ class DefaultFirebaseOptions {
     storageBucket: 'isread-app.firebasestorage.app',
     measurementId: 'G-1HJREQ9CSY',
   );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyCWnXLzfzXVqKgefiDZTZ3O8eAeQ9_qbcA',
+    appId: '1:847008847185:ios:7083fb95c48cac39c32f70',
+    messagingSenderId: '847008847185',
+    projectId: 'isread-app',
+    storageBucket: 'isread-app.firebasestorage.app',
+    iosBundleId: 'com.example.isread',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCWnXLzfzXVqKgefiDZTZ3O8eAeQ9_qbcA',
+    appId: '1:847008847185:ios:7083fb95c48cac39c32f70',
+    messagingSenderId: '847008847185',
+    projectId: 'isread-app',
+    storageBucket: 'isread-app.firebasestorage.app',
+    iosBundleId: 'com.example.isread',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyDVGlarkHaH2BVrqDAEHSyJ7pt8IeuES5E',
+    appId: '1:847008847185:android:e0660617a58e97f2c32f70',
+    messagingSenderId: '847008847185',
+    projectId: 'isread-app',
+    storageBucket: 'isread-app.firebasestorage.app',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyDn3TwZmD1ocoJaD-JHHPeklD_LA3B9Uno',
+    appId: '1:847008847185:web:5c32ea16391f599fc32f70',
+    messagingSenderId: '847008847185',
+    projectId: 'isread-app',
+    authDomain: 'isread-app.firebaseapp.com',
+    storageBucket: 'isread-app.firebasestorage.app',
+    measurementId: 'G-M0WEPT1ZSJ',
+  );
+
 }
