@@ -51,27 +51,33 @@ class BookDashboardState extends State<BookDashboard> {
     try {
       // Fetch Buku data
       final rawDataBuku = await ds.selectAll(token, project, 'buku', appid);
-      final dataBuku = jsonDecode(rawDataBuku) as List;
-      final List<BukuModel> bukuData =
-          dataBuku.map((e) => BukuModel.fromJson(e)).toList();
+      final List<dynamic> dataBuku = jsonDecode(rawDataBuku);
+      final List<BukuModel> bukuData = dataBuku
+          .map((e) => BukuModel.fromJson(e as Map<String, dynamic>))
+          .toList();
 
       // Fetch User data
       final rawDataUsers = await ds.selectAll(token, project, 'user', appid);
-      final dataUsers = jsonDecode(rawDataUsers) as List;
-      final List<UserModel> usersData =
-          dataUsers.map((e) => UserModel.fromJson(e)).toList();
+      final List<dynamic> dataUsers = jsonDecode(rawDataUsers);
+      final List<UserModel> usersData = dataUsers
+          .map((e) => UserModel.fromJson(e as Map<String, dynamic>))
+          .toList();
 
+      // Fetch Peminjaman data
       final rawDataPinjam =
           await ds.selectAll(token, project, 'peminjaman', appid);
-      final dataPinjam = jsonDecode(rawDataPinjam) as List;
-      final List<PeminjamanModel> pinjamData =
-          dataPinjam.map((e) => PeminjamanModel.fromJson(e)).toList();
+      final List<dynamic> dataPinjam = jsonDecode(rawDataPinjam);
+      final List<PeminjamanModel> pinjamData = dataPinjam
+          .map((e) => PeminjamanModel.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-      final rawDatakembalis =
+      // Fetch Pengembalian data
+      final rawDataKembali =
           await ds.selectAll(token, project, 'pengembalian', appid);
-      final datakembalis = jsonDecode(rawDatakembalis) as List;
-      final List<PengembalianModel> kembalisData =
-          datakembalis.map((e) => PengembalianModel.fromJson(e)).toList();
+      final List<dynamic> dataKembali = jsonDecode(rawDataKembali);
+      final List<PengembalianModel> kembalisData = dataKembali
+          .map((e) => PengembalianModel.fromJson(e as Map<String, dynamic>))
+          .toList();
 
       setState(() {
         buku = bukuData;
@@ -360,6 +366,36 @@ class BookDashboardState extends State<BookDashboard> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
+              Container(
+                color: Colors.blue, // Warna latar belakang header drawer
+                padding: EdgeInsets.only(left: 16.0, top: 20.0, bottom: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.white,
+                      backgroundImage: AssetImage('assets/avatar/dummy.jpg'),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Admin Name',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'admin@example.com',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               ListTile(
                 leading: Icon(Icons.dashboard, color: Colors.blue),
                 title: Text('Dashboard'),
