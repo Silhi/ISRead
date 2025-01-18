@@ -267,6 +267,9 @@ class BookDashboardState extends State<BookDashboard> {
             case 'Laporan Akhir MBKM':
               kodePrefix = 'MBKM';
               break;
+            case 'Umum':
+              kodePrefix = 'BK';
+              break;
             default:
               continue;
           }
@@ -279,10 +282,15 @@ class BookDashboardState extends State<BookDashboard> {
             continue;
           }
 
-          final String penerbitCode =
-              penerbit.substring(2, 6) + '-' + penerbit.substring(6);
+          String newKode;
 
-          final String newKode = '$kodePrefix-$urutan-$penerbitCode';
+          if (kategori == 'Umum') {
+            newKode = '$kodePrefix-$urutan';
+          } else {
+            final String penerbitCode =
+                penerbit.substring(2, 6) + '-' + penerbit.substring(6);
+            newKode = '$kodePrefix-$urutan-$penerbitCode';
+          }
 
           final bool updated = await updateBookCode('_id', buku.id, newKode);
 
