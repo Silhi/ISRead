@@ -53,11 +53,13 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Mengambil data peminjaman dan buku
+  // Mengambil data peminjaman dan bukur
   Future<void> loadData() async {
+    print(currentUser!.id);
     try {
       final peminjamanResponse = await ds.selectWhere(
-          token!, project!, 'peminjaman', appid!, 'id_user', currentUser!.id);
+          token, project, 'peminjaman', appid, 'id_user', currentUser!.id);
+      print(currentUser!.id);
 
       final peminjamanData = jsonDecode(peminjamanResponse) as List<dynamic>;
       peminjaman = peminjamanData
@@ -66,7 +68,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
       for (var peminjamanItem in peminjaman) {
         final DateTime tanggalKembali =
-            DateTime.parse(peminjamanItem.tgl_kembali);
+            DateFormat('dd-MM-yyyy').parse(peminjamanItem.tgl_kembali);
+
         final DateTime sekarang = DateTime.now();
         final int terlambat = sekarang.isAfter(tanggalKembali)
             ? sekarang.difference(tanggalKembali).inDays
@@ -300,8 +303,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                 itemBuilder: (context, index) {
                                   var peminjamanItem = peminjaman[index];
                                   var sekarang = DateTime.now();
-                                  var tanggalKembali = DateTime.parse(
-                                      peminjamanItem.tgl_kembali);
+                                  var tanggalKembali = DateFormat('dd-MM-yyyy')
+                                      .parse(peminjamanItem.tgl_kembali);
+
                                   var terlambat =
                                       sekarang.isAfter(tanggalKembali)
                                           ? sekarang
