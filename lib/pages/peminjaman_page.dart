@@ -56,11 +56,15 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
   }
 
   Future<void> selectTanggalKembali(BuildContext context) async {
+    DateTime lastDate = DateTime.now().add(Duration(
+      days: buku?.kategori_buku == "Umum" ? 7 : 3,
+    ));
+
     final DateTime? picked = await showDatePicker(
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime.now(),
-        lastDate: DateTime.now().add(const Duration(days: 7)),
+        lastDate: lastDate,
         builder: (BuildContext context, Widget? child) {
           return Theme(
             data: ThemeData.light().copyWith(

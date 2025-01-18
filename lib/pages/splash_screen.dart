@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isread/pages/home_page.dart';
-import 'package:isread/widgets/custom_scaffold.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -55,38 +54,19 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      child: Container(
+    return Scaffold(
+      body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(),
+        color: Colors.white, // Set background color to white
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Logo with transparent background, no border
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: Container(
-                  padding: const EdgeInsets.all(
-                      0), // Removed padding to fit the logo naturally
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(
-                        0.2), // Soft background opacity for blending
-                    borderRadius: BorderRadius.circular(0), // No border
-                  ),
-                  child: Image.asset(
-                    'assets/screen/isreadlogo.png',
-                    width: 150, // Adjust logo size to make it more fitting
-                    height: 150, // Adjust logo size
-                  ),
-                ),
-              ),
-              const SizedBox(
-                  height: 20), // Adjust spacing between logo and text
-              // Elegant, bold tagline text
-            ],
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Image.asset(
+              'assets/screen/isreadlogo.png',
+              width: 250, // Increased logo size
+              height: 250, // Increased logo size
+            ),
           ),
         ),
       ),

@@ -6,36 +6,30 @@ class UserModel {
   final String password;
   final String no_telpon;
   final String role;
+  final String profpic;
 
-  UserModel(
-      {required this.id,
-      required this.username,
-      required this.nrp,
-      required this.email,
-      required this.password,
-      required this.no_telpon,
-      required this.role});
+  UserModel({
+    required this.id,
+    required this.username,
+    required this.nrp,
+    required this.email,
+    required this.password,
+    required this.no_telpon,
+    required this.role,
+    required this.profpic,
+  });
 
-  factory UserModel.fromJson(Map data) {
+  factory UserModel.fromJson(Map<String, dynamic> data) {
     return UserModel(
-        id: data['_id'],
-        username: data['username'],
-        nrp: data['nrp'],
-        email: data['email'],
-        password: data['password'],
-        no_telpon: data['no_telpon'],
-        role: data['role']);
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'username': username,
-      'nrp': nrp,
-      'email': email,
-      'password': password,
-      'no_telpon': no_telpon,
-      'role': role,
-    };
+      id: data['_id'] ?? '',
+      username: data['username'] ?? '',
+      nrp: data['nrp'] ?? '',
+      email: data['email'] ?? '',
+      password: data['password'] ?? '',
+      no_telpon: data['no_telpon'] ?? '',
+      role: data['role'] ?? '',
+      profpic: data['profpic'] ?? '',
+    );
   }
 }
+//baru

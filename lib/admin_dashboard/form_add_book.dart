@@ -525,7 +525,7 @@ class _AddBookPageState extends State<AddBookPage> {
           kodePrefix = 'MBKM';
           break;
         case 'Umum':
-          kodePrefix = 'CB';
+          kodePrefix = 'BK';
           break;
         default:
           return;
@@ -534,11 +534,19 @@ class _AddBookPageState extends State<AddBookPage> {
       int existingCount = await countBooksByCategory(_selectedCategory!);
       final String urutan = (existingCount + 1).toString().padLeft(3, '0');
 
-      final String penerbitCode = _penerbitTextController.text.substring(2, 6) +
-          '-' +
-          _penerbitTextController.text.substring(6);
+      String newKode;
 
-      final String newKode = '$kodePrefix-$urutan-$penerbitCode';
+      if (_selectedCategory == 'Umum') {
+        // Hanya menampilkan prefix dan urutan untuk kategori Umum
+        newKode = '$kodePrefix-$urutan';
+      } else {
+        // Ambil kode penerbit untuk kategori lainnya
+        final String penerbitCode =
+            _penerbitTextController.text.substring(2, 6) +
+                '-' +
+                _penerbitTextController.text.substring(6);
+        newKode = '$kodePrefix-$urutan-$penerbitCode';
+      }
       _kodeTextController.text = newKode; // Set the generated code in the field
 
       ScaffoldMessenger.of(context).showSnackBar(
