@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:isread/utils/restapi.dart';
 import 'package:isread/utils/config.dart';
-
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
@@ -28,6 +28,7 @@ class PengembalianPage extends StatefulWidget {
 }
 
 class _PengembalianPageState extends State<PengembalianPage> {
+  String? _imageUrl;
   DataService ds = DataService();
   UserModel? currentUser;
   BukuModel? buku;
@@ -76,20 +77,9 @@ class _PengembalianPageState extends State<PengembalianPage> {
     buku = BukuModel.fromJson(data[0]);
   }
 
-  Future<void> _openCamera() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      setState(() {
-        _imagePath = image.path; // Menyimpan path gambar
-      });
-    }
-  }
-
   Future<void> _handlePengembalian() async {
     // Validasi apakah buktiFoto sudah diunggah
-    if (_imagePath == null) {
+    if (_imageUrl == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -102,9 +92,13 @@ class _PengembalianPageState extends State<PengembalianPage> {
     }
 
     try {
-      String buktiFoto = base64Encode(File(_imagePath!).readAsBytesSync());
-      String tglDikembalikan = DateFormat('dd-MM-yyyy').format(tanggalKembali!);
+      // Encode foto ke Base64
+      final buktiFoto = _imageUrl!;
 
+      // Format tanggal pengembalian
+      final tglDikembalikan = DateFormat('dd-MM-yyyy').format(tanggalKembali!);
+
+      // Kirim data ke server
       await ds.insertPengembalian(
         appid,
         widget.peminjamanId,
@@ -112,9 +106,11 @@ class _PengembalianPageState extends State<PengembalianPage> {
         buktiFoto,
       );
 
+      // Update status buku dan peminjaman
       await updateBookStatus(widget.bookId);
       await updateLoanStatus(widget.peminjamanId);
 
+      // Notifikasi sukses
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -124,14 +120,16 @@ class _PengembalianPageState extends State<PengembalianPage> {
         ),
       );
 
+      // Navigasi ke halaman profil
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => ProfilePage()),
       );
     } catch (e) {
+      // Menangani kesalahan
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Terjadi kesalahan: $e"),
+          content: Text("Terjadi kesalahan: ${e.toString()}"),
         ),
       );
     }
@@ -157,6 +155,26 @@ class _PengembalianPageState extends State<PengembalianPage> {
     } catch (e) {
       print("Gagal mengupdate status peminjaman: $e");
     }
+  }
+
+  void _openCamera() async {
+    final html.FileUploadInputElement uploadInput =
+        html.FileUploadInputElement();
+    uploadInput.accept = 'image/*';
+    uploadInput.click();
+
+    uploadInput.onChange.listen((e) async {
+      final files = uploadInput.files;
+      if (files!.isNotEmpty) {
+        final reader = html.FileReader();
+        reader.readAsDataUrl(files[0]);
+        reader.onLoadEnd.listen((event) {
+          setState(() {
+            _imageUrl = reader.result as String;
+          });
+        });
+      }
+    });
   }
 
   @override
@@ -307,11 +325,12 @@ class _PengembalianPageState extends State<PengembalianPage> {
                     width: double.infinity,
                     height: 150,
                     color: Colors.grey[300],
-                    child: _imagePath == null
+                    child: _imageUrl == null
                         ? const Icon(Icons.camera_alt, size: 50)
-                        : Image.file(File(_imagePath!)),
+                        : Image.network(_imageUrl!),
                   ),
                 ),
+
                 SizedBox(height: 20),
                 // Button
                 ElevatedButton(
