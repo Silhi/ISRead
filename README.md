@@ -10,11 +10,12 @@
 
 As part of the development team, my main responsibilities included:
 
-- Login & Register system using **Firebase Authentication**
-- Book **CRUD** features (Create, Read, Update, Delete) for admin users
-- **Search functionality** based on title and author
-- Admin dashboard interface and logic
-- Integration with **Firebase** and **Etter Cloud** for backend services
+- Preparing the **Software Requirements Specification (SRS)** document to outline project scope and requirements.
+- Developing the **Login & Register** system using **Firebase Authentication**.
+- Implementing book **CRUD** features (Create, Read, Update, Delete) for admin users.
+- Building the **Search functionality** based on title and author.
+- Designing and developing the admin dashboard interface and logic.
+- Integrating backend services with **Firebase** and **Etter Cloud**.
 
 ---
 
