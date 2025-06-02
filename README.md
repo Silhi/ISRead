@@ -1,16 +1,37 @@
-# isread
+# ISRead — ITENAS Digital Library App
 
-A new Flutter project.
+**ISRead** is a mobile application developed using Flutter to support digital library services at ITENAS (Institut Teknologi Nasional). The app allows users to search, borrow, and manage library books efficiently through a mobile platform.
 
-## Getting Started
+> This repository is a forked version of the original collaborative project. It showcases my personal contributions and implementations as part of the development team.
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 🔧 Features I Worked On
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+As part of the development team, my main responsibilities included:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Login & Register system using **Firebase Authentication**
+- Book **CRUD** features (Create, Read, Update, Delete) for admin users
+- **Search functionality** based on title and author
+- Admin dashboard interface and logic
+- Integration with **Firebase** and **Etter Cloud** for backend services
+
+---
+
+## 🛠️ Tech Stack
+
+- Flutter & Dart
+- Firebase Authentication
+- Firebase Cloud Firestore
+- Etter Cloud
+- State Management (Provider or Riverpod)
+- QR Scanner integration
+
+---
+
+## 📥 How to Clone
+
+To clone this project to your local machine, run the following command in your terminal:
+
+```bash
+git clone https://github.com/your-username/isread.git
