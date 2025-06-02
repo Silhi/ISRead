@@ -93,10 +93,3 @@ This application was developed by a team of ITENAS students:
 ## 📄 Notes
 
 This project was developed as part of a university software development course, with the goal of applying real-world mobile app development using Flutter and cloud technologies.
-
-```
-
----
-
-Kalau kamu mau, aku juga bisa langsung buatkan file README.md-nya dan simpan untuk kamu agar tinggal upload. Mau?
-```
